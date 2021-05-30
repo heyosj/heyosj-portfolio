@@ -1,5 +1,6 @@
 import React from 'react';
 import './Navbar.css';
+import { MenuIcon } from '@heroicons/react/solid';
 
 const Navbar = () => {
 	React.useEffect(() => {
@@ -12,26 +13,28 @@ const Navbar = () => {
 	});
 
 	return (
-		<div className="container mx-auto bg-gray-100 p-5">
+		<div className="container mx-auto p-5">
 			<nav className="flex-row md:justify-between">
 				<div className="flex flex-row justify-between">
-					<a href="#">OSJ</a>
+					<a href="#" className="h-5 w-5">
+						OSJ
+					</a>
 					<p id="hamburgerbtn" className="md:hidden">
-						-
+						<MenuIcon className="h-5 w-5 text-gray" />
 					</p>
 				</div>
 
-				<ul className="hidden md:flex md:flex-row" id="mobileMenu">
-					<li className="pr-5">
-						<a> Services </a>
+				<ul className="hidden md:flex md:flex-row text-center" id="mobileMenu">
+					<li className="pr-5 py-2">
+						<a>Services</a>
 					</li>
-					<li className="pr-5">
+					<li className="pr-5 py-2">
 						<a>Porfolio</a>
 					</li>
-					<li className="pr-5">
+					<li className="pr-5 py-2">
 						<a>About</a>
 					</li>
-					<li className="pr-5">
+					<li className="pr-5 py-2">
 						<a>Contact</a>
 					</li>
 				</ul>
