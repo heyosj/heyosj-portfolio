@@ -3,6 +3,7 @@ import Navbar from './components/Navbar/Navbar';
 import IntroImage from './components/IntroImage/IntroImage';
 import About from './components/About/About';
 import Contact from './components/Contact/Contact';
+import Footer from './components/Footer/Footer';
 
 function App() {
 	return (
@@ -12,6 +13,7 @@ function App() {
 				<IntroImage />
 				<About />
 				<Contact />
+				<Footer />
 			</header>
 		</div>
 	);
