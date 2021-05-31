@@ -16,7 +16,7 @@ const Navbar = () => {
 		<div className="container mx-auto p-5">
 			<nav className="flex-row md:justify-between">
 				<div className="flex flex-row justify-between">
-					<a href="#" className="h-5 w-5">
+					<a href="#" className="h-5 w-5 tracking-wide font-semibold">
 						OSJ
 					</a>
 					<p id="hamburgerbtn" className="md:hidden">
