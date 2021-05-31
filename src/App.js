@@ -1,28 +1,23 @@
 import './App.css';
 import Navbar from './components/Navbar/Navbar';
-import IntroImage from './components/IntroImage/IntroImage';
-import About from './components/About/About';
-import Contact from './components/Contact/Contact';
+import Home from './components/Home/Home';
 import Footer from './components/Footer/Footer';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+
 import Projects from './components/Projects/Projects';
+import Writing from './components/Writing/Writing';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 
 function App() {
 	return (
-		<div className="App">
-			<header className="App-header">
-				<Router>
-					<Navbar />
-					<Switch>
-						<Route path="/" exact component={() => <Projects />} />
-					</Switch>
-				</Router>
-				<IntroImage />
-				<About />
-				<Contact />
+		<Router>
+			<div className="App">
+				<Navbar />
+				<Route exact path="/" component={Home} />
+				<Route path="/projects" component={Projects} />
+				<Route path="/writing" component={Writing} />
 				<Footer />
-			</header>
-		</div>
+			</div>
+		</Router>
 	);
 }
 
