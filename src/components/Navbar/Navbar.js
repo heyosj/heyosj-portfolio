@@ -4,6 +4,9 @@ import { MenuIcon } from '@heroicons/react/solid';
 import { NavLink } from 'react-router-dom';
 
 const Navbar = ({ fixed }) => {
+	const menu = document.getElementById('menu');
+	const toggle = () => menu.classList.toggle('hidden');
+
 	const [navbarOpen, setNavbarOpen] = React.useState(false);
 	return (
 		// <Router>
@@ -16,7 +19,7 @@ const Navbar = ({ fixed }) => {
 							className="text-sm font-bold leading-relaxed inline-block mr-4 py-2 whitespace-nowrap uppercase text-gray-800"
 							href="/"
 						>
-							OSJ
+							<span onClick="toggle">OSJ</span>
 						</NavLink>
 						<button
 							className="text-black cursor-pointer text-xl leading-none px-3 py-1 border border-solid border-transparent rounded bg-transparent block lg:hidden outline-none focus:outline-none"
@@ -30,7 +33,7 @@ const Navbar = ({ fixed }) => {
 						className={'lg:flex flex-grow items-center' + (navbarOpen ? ' flex' : ' hidden')}
 						id="example-navbar-danger"
 					>
-						<ul className="flex flex-col lg:flex-row list-none lg:ml-auto">
+						<ul className="flex flex-col lg:flex-row list-none lg:ml-auto" onClick="toggle">
 							<li className="nav-item">
 								<NavLink
 									to="/writing"
