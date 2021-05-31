@@ -2,8 +2,8 @@ import React from 'react';
 
 const About = () => {
 	return (
-		<div className="container mx-auto pt-10 px-10">
-			<h1 className="tracking-widest text-2xl text-gray-700 font-black pt-5">about me</h1>
+		<div className="container mx-auto pt-10 px-10 lg:w-6/12 lg:pt-28">
+			<h1 className="tracking-widest text-2xl text-gray-700 font-black pt-5">About Me</h1>
 			<p className="text-1xl text-gray-500 pt-4">
 				Born in Texas, raised in Michigan. I've spent years in management before making the switch to
 				development. Here in Chicago, I've worked at big and small companies doing various tasks. Whether it's
