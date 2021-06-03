@@ -15,7 +15,7 @@ const Contact = () => {
 					<SocialIcon url="https://www.twitter.com/heyosj" network="twitter" target="_blank" />
 				</span>
 				<span className="pr-2 cursor-pointer">
-					<SocialIcon url="https://wwww.github.com/heyosj" network="github" target="_blank" />
+					<SocialIcon url="https://www.github.com/heyosj" network="github" target="_blank" />
 				</span>
 				<span className="pr-2 cursor-pointer">
 					<SocialIcon url={'mailto:ojsanch@gmail.com'} network="email" target="_blank" />

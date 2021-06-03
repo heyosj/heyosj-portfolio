@@ -9,7 +9,6 @@ const Navbar = ({ fixed }) => {
 
 	const [navbarOpen, setNavbarOpen] = React.useState(false);
 	return (
-		// <Router>
 		<div className="container mx-auto">
 			<nav className="relative flex flex-wrap items-center justify-between px-2 py-1 bg-blueGray-500 mb-1 text-center">
 				<div className="container px-4 mx-auto flex flex-wrap items-center justify-between">
@@ -55,7 +54,6 @@ const Navbar = ({ fixed }) => {
 				</div>
 			</nav>
 		</div>
-		// </Router>
 	);
 };
 export default Navbar;

@@ -9,3 +9,4 @@ const Writing = () => {
 };
 
 export default Writing;
+// we can use hashnodes api to get most recent posts
