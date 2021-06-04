@@ -12,7 +12,7 @@ const ProjectsContainer = () => {
 						<h1 className="tracking-widest text-3xl text-gray-700 font-black pt-5 pb-4 flex justify-between">
 							projects
 						</h1>
-						<p className="mx-auto text-sm md:text-1xl text-gray-500 ">
+						<p className="mx-auto text-sm md:text-base lg:text1xl text-gray-500 ">
 							I love to write code and learn new things. So you can see that most of my work is public and
 							can be found on my
 							<span>
