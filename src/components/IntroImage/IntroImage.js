@@ -3,7 +3,7 @@ import ImageOfMe from '../../imgs/me.jpg';
 
 const IntroImage = () => {
 	return (
-		<div className=" mx-auto p-20 text-center bg-gray-100">
+		<div className="mx-auto p-20 text-center bg-gray-100">
 			<div>
 				<img
 					src={ImageOfMe}
