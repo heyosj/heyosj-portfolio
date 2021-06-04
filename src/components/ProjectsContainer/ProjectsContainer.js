@@ -7,7 +7,7 @@ const ProjectsContainer = () => {
 	return (
 		<div class="mx-auto">
 			<div class="mx-auto bg-gray-100 lg:pl-40">
-				<div class="mx-auto p-20 bg-gray-100">
+				<div class="mx-auto p-20 bg-gray-100 mb-10 md:mb-0">
 					<div className="container mx-auto">
 						<h1 className="tracking-widest text-3xl text-gray-700 font-black pt-5 pb-4 flex justify-between">
 							projects
