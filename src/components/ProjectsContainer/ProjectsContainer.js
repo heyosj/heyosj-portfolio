@@ -10,7 +10,7 @@ const ProjectsContainer = () => {
 				<div class="mx-auto p-20 bg-gray-100 mb-10 md:mb-0">
 					<div className="container mx-auto">
 						<h1 className="tracking-widest text-3xl text-gray-700 font-black pt-5 pb-4 flex justify-between">
-							projects
+							My Projects
 						</h1>
 						<p className="mx-auto text-sm md:text-base lg:text1xl text-gray-500 ">
 							I love to write code and learn new things. So you can see that most of my work is public and
