@@ -38,7 +38,7 @@ const Navbar = ({ fixed }) => {
 									to="/writing"
 									className="px-3 py-2 flex items-center text-xs uppercase font-bold leading-snug text-gray-800 hover:opacity-75"
 								>
-									<span className="ml-2">Writing</span>
+									{/* <span className="ml-2">Writing</span> */}
 								</NavLink>
 							</li>
 							<li className="nav-item">
