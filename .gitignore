@@ -1,0 +1,19 @@
+cat > .gitignore << 'EOF'
+# build & deps
+node_modules/
+.next/
+.out/
+dist/
+.eslintcache
+.turbo/
+.vercel/
+
+# env & logs
+.env
+.env*.local
+*.log
+
+# misc
+.DS_Store
+coverage/
+EOF
