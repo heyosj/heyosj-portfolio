@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Warm Kindle-like palette */
+:root{
+  --paper:   #f6f1da;
+  --card:    #fbf6e6;
+  --border:  #e6dcc4;
+  --ink:     #2a261f;
+  --subtext: #665e53;
+  --accent:  #c77d54;
+  --accent-600:#a9653e;
+  --hover-accent:#f7e8c9;
+}
+
+html, body { height: 100%; }
+body { background: var(--paper); color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+a { color: var(--ink); }
+a:hover { color: var(--accent-600); }
+
+/* Utility fallbacks to match tokens */
+.bg-paper{ background-color: var(--paper) !important; }
+.bg-card{ background-color: var(--card) !important; }
+.border-border{ border-color: var(--border) !important; }
+.text-ink{ color: var(--ink) !important; }
+.text-subtext{ color: var(--subtext) !important; }
+.text-accent{ color: var(--accent) !important; }
+
+.prose { max-width: 72ch; }
+.prose a { text-decoration: underline; }
+.prose img { border-radius: .75rem; }
+
+#progress { position: fixed; top:0; left:0; height:3px; width:0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-600)); z-index:50; }
+
+@layer components{
+  .card { border:1px solid var(--border); background:var(--card); border-radius:12px; padding:1.75rem; box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  .btn  { display:inline-block; padding:.5rem 1rem; border-radius:10px; border:1px solid var(--border);
+          background: var(--paper); color: var(--ink); transition: background .15s ease, box-shadow .15s ease; text-align:center; }
+  .btn:hover{ background:var(--hover-accent); box-shadow:0 1px 4px rgba(0,0,0,.06); }
+  .muted{ color:var(--subtext); }
+}
