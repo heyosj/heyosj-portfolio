@@ -11,7 +11,7 @@ export default function ShareBar({ title }:{title:string}){
   return (
     <div className="flex items-center gap-3 text-sm muted">
       <button onClick={copy} className="underline">Copy link</button>
-      <a className="underline" target="_blank" rel="noreferrer" href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`}>Twitter</a>
+      <a className="underline" target="_blank" rel="noreferrer" href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`}>X</a>
       <a className="underline" target="_blank" rel="noreferrer" href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`}>Email</a>
     </div>
   );

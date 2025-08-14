@@ -119,3 +119,14 @@ a:hover { color: var(--accent-600); }
   margin-bottom: .6rem;
   border-radius: .75rem;
 }
+
+.dark {
+  --paper: #2b2b2b;       /* soft grey background */
+  --card: #3a3a3a;        /* card grey */
+  --border: #4a4a4a;
+  --ink: #d1d1d1;         /* text */
+  --subtext: #9a9a9a;
+  --accent: #c77d54;      /* keep accent */
+}
+
+::selection { background: var(--accent, #c77d54); color: #fff; }
