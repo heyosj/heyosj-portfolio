@@ -1,3 +1,4 @@
+// lib/posts.ts
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
@@ -12,13 +13,32 @@ import rehypeStringify from "rehype-stringify";
 
 const postsDir = path.join(process.cwd(), "content", "posts");
 
+// allow lowercase letters, numbers, and dashes (kebab-case)
+const Slug = z
+  .string()
+  .regex(/^[a-z0-9][a-z0-9-]*$/, { message: "use lowercase letters, numbers, and dashes" });
+
+// frontmatter schema with friendlier coercions/defaults
 const Frontmatter = z.object({
   title: z.string(),
-  date: z.string(),
-  description: z.string(),
-  tags: z.array(z.string()).default([]),
-  slug: z.string().regex(/^[a-z0-9_]+$/, "slug must use lowercase letters, numbers, and underscores only"),
+  // accept Date | string and coerce to "YYYY-MM-DD"
+  date: z.preprocess((v) => {
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    if (typeof v === "string") return v; // assume already in a string form
+    return String(v);
+  }, z.string()),
+  description: z.string().optional().default(""),
+  tags: z.array(z.string()).optional().default([]),
+  slug: Slug.optional(),
 });
+
+function slugifyFilename(file: string) {
+  return path
+    .basename(file, path.extname(file))
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
 
 async function markdownToHtml(markdown: string): Promise<string> {
   const file = await unified()
@@ -43,20 +63,27 @@ export type Post = {
 
 export async function getAllPosts(): Promise<Post[]> {
   if (!fs.existsSync(postsDir)) return [];
-  const files = fs.readdirSync(postsDir).filter(f => f.endsWith(".md") || f.endsWith(".mdx"));
+  const files = fs.readdirSync(postsDir).filter((f) => f.endsWith(".md") || f.endsWith(".mdx"));
   const posts: Post[] = [];
+
   for (const file of files) {
     const raw = fs.readFileSync(path.join(postsDir, file), "utf8");
     const { content, data } = matter(raw);
+
+    // parse & normalize frontmatter
     const fm = Frontmatter.parse(data);
+    const slug = fm.slug ?? slugifyFilename(file);
+
     const rt = readingTime(content).text;
     const compiled = await markdownToHtml(content);
-    posts.push({ ...fm, readingTime: rt, html: compiled });
+
+    posts.push({ ...fm, slug, readingTime: rt, html: compiled });
   }
-  return posts.sort((a,b) => +new Date(b.date) - +new Date(a.date));
+
+  return posts.sort((a, b) => +new Date(b.date) - +new Date(a.date));
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   const posts = await getAllPosts();
-  return posts.find(p => p.slug === slug) || null;
+  return posts.find((p) => p.slug === slug) || null;
 }
