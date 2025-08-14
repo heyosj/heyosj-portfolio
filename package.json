@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "new": "node scripts/new-post.mjs"
+    "new": "node scripts/new-post.mjs",
+    "post:new": "node -e \"const tz='America/Indiana/Indianapolis'; const title=(process.env.npm_config_title||process.argv.slice(1).join(' ')||'untitled').trim(); const slug=title.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); const d=new Intl.DateTimeFormat('en-CA',{timeZone:tz}).format(new Date()); const fs=require('fs'); const {execSync}=require('child_process'); execSync('mkdir -p content/posts'); const p=`content/posts/${slug}.mdx`; const fm=`---\\n`+`title: \\\"${title}\\\"\\n`+`description: \\\"\\\"\\n`+`date: \\\"${d}\\\"\\n`+`slug: \\\"${slug}\\\"\\n`+`tags: []\\n`+`---\\n\\n## intro\\nwrite your note here…\\n`; fs.writeFileSync(p,fm); console.log('Created',p);\"",
+    "post:broadcast": "dotenv -e .env.local -- node -e \"const slug=process.argv[1]; if(!slug){console.error('Usage: npm run post:broadcast -- <slug>'); process.exit(1);} const base=process.env.NEXT_PUBLIC_SITE_URL||'https://www.heyosj.com'; const key=process.env.BROADCAST_SECRET; if(!key){console.error('BROADCAST_SECRET missing'); process.exit(1);} const {execSync}=require('child_process'); execSync(`curl -i -L \\\"${base}/api/broadcast/${slug}?key=${key}\\\"`,{stdio:'inherit'});\"",
+    "post:latest": "dotenv -e .env.local -- node -e \"const fs=require('fs'),path=require('path'),cp=require('child_process'); const base=process.env.NEXT_PUBLIC_SITE_URL||'https://www.heyosj.com'; const key=process.env.BROADCAST_SECRET; if(!key){console.error('BROADCAST_SECRET missing');process.exit(1);} const dir=path.join('content','posts'); if(!fs.existsSync(dir)){console.error('content/posts not found');process.exit(1);} const files=fs.readdirSync(dir).filter(f=>/\\.(md|mdx)$/.test(f)).map(f=>({f, m: fs.statSync(path.join(dir,f)).mtimeMs})).sort((a,b)=>b.m-a.m); if(!files.length){console.error('No posts in content/posts');process.exit(1);} const slug=path.basename(files[0].f).replace(/\\.(md|mdx)$/,''); console.log('Broadcasting latest:', slug); cp.execSync(`curl -i -L \\\"${base}/api/broadcast/${slug}?key=${key}\\\"`, {stdio:'inherit'});\""
+
   },
   "dependencies": {
     "@tailwindcss/typography": "0.5.15",
@@ -30,6 +34,7 @@
     "@types/react": "19.1.10",
     "@types/rss": "^0.0.32",
     "autoprefixer": "10.4.19",
+    "dotenv-cli": "^10.0.0",
     "postcss": "8.4.39",
     "tailwindcss": "3.4.10",
     "typescript": "5.5.4"
