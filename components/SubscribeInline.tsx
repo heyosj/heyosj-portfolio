@@ -3,20 +3,38 @@
 
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "osj_subscribed";
+const STORAGE_KEY = "osj_subscribed"; // set only after confirmed
 
 export default function SubscribeInline() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "err">("idle");
   const [msg, setMsg] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-  const [returning, setReturning] = useState(false); // only true on reload if LS is set
+  const [subscribed, setSubscribed] = useState(false); // this-session state after submit
+  const [returning, setReturning] = useState(false);   // true if confirmed + came back
 
-  // Returning visitor? (persisted)
+  // A) Returning visit via localStorage (already confirmed earlier)
   useEffect(() => {
     try {
-      if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY) === "1") {
+      if (typeof window !== "undefined" && window.localStorage.getItem(STORAGE_KEY) === "1") {
+        setSubscribed(true);
+        setReturning(true);
+      }
+    } catch {}
+  }, []);
+
+  // B) Confirmation redirect flag (e.g., /?confirmed=1 or /?sub=confirmed)
+  // Set your Buttondown confirmation redirect to your homepage with one of these params.
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined") return;
+      const sp = new URLSearchParams(window.location.search);
+      const confirmed =
+        sp.get("confirmed") === "1" ||
+        sp.get("sub") === "confirmed" ||
+        sp.get("bd_confirmed") === "1";
+      if (confirmed) {
+        window.localStorage.setItem(STORAGE_KEY, "1");
         setSubscribed(true);
         setReturning(true);
       }
@@ -26,9 +44,12 @@ export default function SubscribeInline() {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setStatus("err"); setMsg("enter a valid email"); return;
+      setStatus("err");
+      setMsg("enter a valid email");
+      return;
     }
-    setStatus("loading"); setMsg("");
+    setStatus("loading");
+    setMsg("");
     try {
       const res = await fetch("/api/subscribe", {
         method: "POST",
@@ -36,33 +57,36 @@ export default function SubscribeInline() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
+        // Double opt-in: show “please confirm” state for this session.
         setStatus("ok");
-        setSubscribed(true);     // show "subscribed" (this session)
+        setSubscribed(true);
         setOpen(false);
         setEmail("");
-        try { localStorage.setItem(STORAGE_KEY, "1"); } catch {}
+        // Do NOT set localStorage here—only after confirmation redirect.
       } else {
         const data = await res.json().catch(() => ({}));
-        setStatus("err"); setMsg(data?.error || "something went wrong");
+        setStatus("err");
+        setMsg(data?.error || "something went wrong");
       }
     } catch {
-      setStatus("err"); setMsg("network error");
+      setStatus("err");
+      setMsg("network error");
     }
   }
 
   return (
     <div className="w-full">
-      {/* Returning visitor (after refresh / new visit) */}
-      {subscribed && returning && (
+      {/* Returning visitor (confirmed + remembered) */}
+      {returning && (
         <div className="inline-flex items-center gap-2">
-          <span className="text-sm px-3 py-1.5 rounded-full border border-border dark:border-border-dark bg-card dark:bg-card-dark">
+          <span className="text-sm px-3 py-2 rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark">
             👋 welcome back
           </span>
         </div>
       )}
 
       {/* Closed: bigger button + inline blurb */}
-      {!open && !subscribed && !returning && (
+      {!returning && !open && !subscribed && (
         <div className="inline-flex flex-wrap items-center gap-3">
           <button
             onClick={() => setOpen(true)}
@@ -80,10 +104,12 @@ export default function SubscribeInline() {
       )}
 
       {/* Open: bigger form + blurb below */}
-      {open && !subscribed && !returning && (
+      {!returning && open && !subscribed && (
         <div className="flex flex-col items-start gap-3">
           <form onSubmit={onSubmit} className="flex items-center gap-3">
-            <label htmlFor="subscribe-email" className="sr-only">email</label>
+            <label htmlFor="subscribe-email" className="sr-only">
+              email
+            </label>
             <input
               id="subscribe-email"
               type="email"
@@ -107,7 +133,11 @@ export default function SubscribeInline() {
             </button>
             <button
               type="button"
-              onClick={() => { setOpen(false); setStatus("idle"); setMsg(""); }}
+              onClick={() => {
+                setOpen(false);
+                setStatus("idle");
+                setMsg("");
+              }}
               className="text-sm underline text-subtext dark:text-subtext-dark"
             >
               cancel
@@ -126,14 +156,14 @@ export default function SubscribeInline() {
         </div>
       )}
 
-      {/* New subscription (this session only) */}
-      {subscribed && !returning && (
+      {/* Success (pending confirmation, this session only) */}
+      {!returning && subscribed && (
         <div className="flex flex-col items-start gap-3">
-          <span className="text-sm px-3 py-1.5 rounded-full border border-border dark:border-border-dark bg-card dark:bg-card-dark text-green-700 dark:text-green-400">
-            subscribed
+          <span className="text-sm px-3 py-2 rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark">
+            ❤️ you’re kind
           </span>
           <p className="text-sm text-subtext dark:text-subtext-dark">
-            you’ll get new notes 1–2×/month. thanks for reading.
+            please check your email to confirm — enjoy the reading.
           </p>
         </div>
       )}
