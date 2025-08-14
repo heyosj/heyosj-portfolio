@@ -1,0 +1,97 @@
+---
+title: "SPF/DKIM/DMARC"
+description: "In-depth notes on email authentication, spoofing prevention, and policy configuration."
+date: "2025-08-13"
+slug: "spf_dkim_dmarc"
+---
+
+> **TL;DR:** SPF limits who can send on behalf of your domain, DKIM verifies messages haven’t been altered, and DMARC ties both together with policy and reporting. Too strict can block legitimate mail; too loose leaves you open to spoofing. Aim for balanced enforcement, staged rollouts, and reporting enabled.
+
+[What is email security? | Cloudflare](https://www.cloudflare.com/learning/email-security/)  
+[Cloudflare Blog: Tackling Email Spoofing](https://blog.cloudflare.com/tackling-email-spoofing/?_gl=1*ocnswq*_gcl_au*NTYyNTM4NDc3LjE3MTUwMTkzOTE.*_ga*NjhiMzgwOTYtZDA1NC00NGQyLTliYTMtZDBiOTJjNzM2NmI0*_ga_SQCRB0TXZW*MTcyMjYxNDg4NS42LjEuMTcyMjYxNDkxNS4wLjAuMA)
+
+## Goals
+- Review and recommend improvements to SPF/DKIM/DMARC.
+- Implement SMTP TLS reporting for inbound emails.
+- Implement MTA-STS for inbound emails.
+
+## How They Work
+Email service providers check messages against SPF, DKIM, and DMARC to verify:
+- **Origin authenticity** — The message came from an authorized source.
+- **Integrity** — It hasn’t been modified in transit.
+- **Policy compliance** — The domain owner’s rules are followed.
+
+These are DNS-based anti-spoofing mechanisms:
+1. **SPF** – Sender Policy Framework  
+2. **DKIM** – DomainKeys Identified Mail  
+3. **DMARC** – Domain-based Message Authentication Reporting & Conformance  
+
+---
+
+## Concerns
+- **Too strict:** Legitimate messages can be blocked or flagged as spam.
+- **Too relaxed:** Your domain can be abused for spoofing/phishing.
+
+---
+
+## SPF — Sender Policy Framework
+SPF lists which IP addresses and domains are allowed to send on behalf of your domain.
+
+- Published as a TXT DNS record starting with `v=spf1`.
+- `include:` references another domain’s SPF record.
+- Ends with a **qualifier**:
+  - `+all` (Allow) — **Not recommended**, allows anyone.
+  - `~all` (SoftFail) — Marks as suspicious; different servers may spam-flag or warn.
+  - `-all` (Fail) — Rejects messages from non-listed sources.
+
+💡 **SPF’s role:** Only explicitly listed IPs/domains can send for you. Others are denied, soft-failed, or allowed depending on your qualifier.
+
+**Example:**  
+If the sending IP isn’t listed:
+1. Apply `~all` to soft-fail.
+2. Pass to DKIM and DMARC for additional checks.
+3. The receiving system (e.g., Exchange) makes the final deliver/spam/block decision.
+
+---
+
+## DKIM — DomainKeys Identified Mail
+DKIM signs parts of an email (headers, body) with a private key. The recipient fetches the public key from DNS to verify.
+
+- TXT record format: `<selector>._domainkey.<domain>`.
+- Starts with `v=DKIM1` followed by:
+  - `k=` key type (e.g., rsa)
+  - `p=` public key
+- Independent from SPF — both checks run separately.
+
+💡 **DKIM’s role:** Confirms that the message content hasn’t been altered and that it came from the domain that signed it.
+
+---
+
+## DMARC — Domain-based Message Authentication Reporting & Conformance
+DMARC integrates SPF and DKIM results, defines a handling policy, and sends reports.
+
+- TXT record at `_dmarc.<domain>` starting with `v=DMARC1`.
+- Key tags:
+  - `p=` policy:  
+    - `none` — Monitor only.  
+    - `quarantine` — Send failures to spam/junk.  
+    - `reject` — Drop failures entirely.  
+  - `pct=` — Apply policy to a percentage of traffic (useful for gradual rollout).  
+  - `rua=` — Address for aggregate reports.
+
+💡 Without DMARC, recipients apply their own handling rules for SPF/DKIM failures, leading to inconsistency and no feedback.
+
+---
+
+## Why This Matters
+- Without **DMARC**, SPF/DKIM failures may still slip through or be handled inconsistently.
+- With **DMARC**, you set the rules and get reports — helping identify spoof attempts and misconfigurations.
+
+---
+
+## Conclusion
+- **SPF with `-all`**: Strictly block unauthorized senders.
+- **DKIM**: Validate email authenticity and integrity with cryptographic signatures.
+- **DMARC with `p=reject`**: Block unauthenticated emails and collect reports for visibility.
+
+---

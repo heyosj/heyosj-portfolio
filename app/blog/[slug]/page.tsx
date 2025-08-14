@@ -10,6 +10,12 @@ export default async function PostPage({ params }:{params:{slug:string}}){
   if(!post) return notFound();
   return (
     <article className="space-y-6">
+      <nav className="text-sm muted flex gap-3">
+        <a href="#story-why" className="underline">Story</a>
+        <a href="#notes-apply-fast" className="underline">Notes</a>
+        <a href="#checklist" className="underline">Checklist</a>
+      </nav>
+
       <header className="space-y-2">
         <p className="text-sm muted">OSJ Dispatch</p>
         <h1 className="text-3xl font-serif leading-tight">{post.title}</h1>
@@ -17,7 +23,7 @@ export default async function PostPage({ params }:{params:{slug:string}}){
         <p className="text-sm muted">{new Date(post.date).toLocaleDateString()} • {post.readingTime}</p>
         <ShareBar title={post.title} />
       </header>
-      <div className="prose prose-zinc max-w-prose" dangerouslySetInnerHTML={{ __html: post.html }} />
+      <div className="prose prose-tight max-w-prose" dangerouslySetInnerHTML={{ __html: post.html }} />
       <hr className="border-border" />
       <nav className="flex items-center justify-between text-sm">
         <Link href="/blog" className="underline">← Back to archive</Link>

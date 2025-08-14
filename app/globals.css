@@ -44,3 +44,78 @@ a:hover { color: var(--accent-600); }
   .btn:hover{ background:var(--hover-accent); box-shadow:0 1px 4px rgba(0,0,0,.06); }
   .muted{ color:var(--subtext); }
 }
+
+/* callouts for context/story bits */
+.callout {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+/* checklist polish */
+.prose ul[class~="checklist"] li {
+  list-style: none;
+  margin: .25rem 0;
+}
+.prose ul[class~="checklist"] li input[type="checkbox"] {
+  transform: translateY(2px);
+  margin-right: .5rem;
+}
+
+/* compact refs */
+.refs { font-size: .95em; }
+
+/* --- Prose: compact variant --- */
+.prose.prose-tight {
+  /* overall rhythm */
+  line-height: 1.45;
+}
+
+.prose.prose-tight :where(p, ul, ol, blockquote, pre){
+  margin-top: .45rem;
+  margin-bottom: .45rem;
+}
+
+.prose.prose-tight :where(h2){
+  margin-top: 1.1rem;
+  margin-bottom: .5rem;
+  line-height: 1.2;
+}
+
+.prose.prose-tight :where(h3){
+  margin-top: .9rem;
+  margin-bottom: .35rem;
+  line-height: 1.25;
+}
+
+.prose.prose-tight :where(li){
+  margin: .2rem 0;
+}
+
+.prose.prose-tight :where(hr){
+  margin: .9rem 0;
+}
+
+.prose.prose-tight :where(code){
+  font-size: .95em;
+}
+
+.prose.prose-tight :where(pre){
+  padding: .6rem .8rem;
+  border-radius: .5rem;
+  margin-top: .6rem;
+  margin-bottom: .6rem;
+}
+
+.prose.prose-tight :where(blockquote){
+  padding: .8rem 1rem;
+  border-radius: .6rem;
+}
+
+/* keep images neat but tighter */
+.prose.prose-tight :where(img){
+  margin-top: .6rem;
+  margin-bottom: .6rem;
+  border-radius: .75rem;
+}
