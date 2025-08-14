@@ -3,7 +3,7 @@ import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle"; // ⬅️ Add this import
 
 export const metadata = {
-  title: { default: "OSJ Dispatch", template: "%s | OSJ Dispatch" },
+  title: { default: "heyOSJ: Dispatch", template: "%s · heyOSJ: Dispatch" },
   description: "Short, useful security essays and notes.",
   alternates: { types: { "application/rss+xml": "/rss.xml" } },
 };

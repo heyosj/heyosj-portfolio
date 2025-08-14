@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- background: accent -->
+  <rect width="256" height="256" rx="56" fill="#c77d54"/>
+  <!-- lock: stroked in card color -->
+  <rect x="56" y="112" width="144" height="104" rx="18"
+        fill="none" stroke="#fbf6e6" stroke-width="18"/>
+  <path d="M96 112 v-16 a32 32 0 0 1 64 0 v16"
+        fill="none" stroke="#fbf6e6" stroke-width="18" stroke-linecap="round"/>
+  <!-- keyhole -->
+  <circle cx="128" cy="160" r="10" fill="#fbf6e6"/>
+  <rect x="120" y="168" width="16" height="26" rx="8" fill="#fbf6e6"/>
+</svg>
