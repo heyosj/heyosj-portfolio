@@ -1,4 +1,4 @@
-// app/api/cron/broadcast-daily/route.ts
+// app/api/broadcast-daily/route.ts
 import { NextResponse, NextRequest } from "next/server";
 import { getAllPosts } from "@/lib/posts";
 
@@ -106,7 +106,6 @@ async function runBroadcast(req: NextRequest, url: URL) {
       publish_date,         // ISO timestamp
       email_type: "public",
       canonical_url: canonical,
-      // filters: {}         // Use later to target segments/tags
     }),
   });
 
@@ -127,7 +126,6 @@ async function runBroadcast(req: NextRequest, url: URL) {
 // Health check or trigger via GET (Vercel Cron uses GET)
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-  // If no auth, just show a hint
   if (!req.headers.get("authorization") && !url.searchParams.get("key")) {
     return NextResponse.json({ ok: true, hint: "GET/POST with CRON_SECRET header or ?key=…" });
   }
