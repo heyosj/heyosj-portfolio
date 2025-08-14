@@ -40,7 +40,7 @@ export default async function Home() {
 
           {/* subscribe button (expands to input on click) */}
           <div className="pt-2">
-            <SubscribeInline />
+            {/* <SubscribeInline /> */}
           </div>
         </div>
       </div>
