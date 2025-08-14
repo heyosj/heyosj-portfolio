@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+// app/api/cron/broadcast-daily/route.ts
+import { NextResponse, NextRequest } from "next/server";
 import { getAllPosts } from "@/lib/posts";
-
-// Protect with a secret so only your cron can run it.
-const CRON_KEY = process.env.BROADCAST_SECRET!;
-const TZ = "America/Indiana/Indianapolis";
 
 export const dynamic = "force-dynamic";
 
+const TZ = "America/Indiana/Indianapolis";
+
+/** YYYY-MM-DD in a specific timezone */
 function toYMD(date: Date, tz: string) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: tz,
@@ -20,20 +20,24 @@ function toYMD(date: Date, tz: string) {
   return `${y}-${m}-${d}`;
 }
 
+/** Absolute URL to a blog post */
 function absUrl(slug: string) {
-  // Set in your env for prod: NEXT_PUBLIC_SITE_URL=https://heyosj.com
   const base = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   return `${base}/blog/${slug}`;
 }
 
-async function runBroadcast(url: URL) {
-  // 1) Auth
+/** Core logic used by both GET/POST triggers */
+async function runBroadcast(req: NextRequest, url: URL) {
+  // --- AUTH: Vercel Cron header OR manual ?key= fallback ---
+  const auth = req.headers.get("authorization");
+  const headerOK = auth === `Bearer ${process.env.CRON_SECRET}`;
   const key = url.searchParams.get("key");
-  if (!key || key !== CRON_KEY) {
+  const queryOK = key && key === process.env.BROADCAST_SECRET;
+  if (!headerOK && !queryOK) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  // 2) Find today's newest post (local to TZ)
+  // 1) Pick today's newest post (in local TZ)
   const posts = await getAllPosts();
   if (!posts?.length) return NextResponse.json({ ok: true, message: "no posts" });
 
@@ -46,10 +50,10 @@ async function runBroadcast(url: URL) {
     return NextResponse.json({ ok: true, message: "no posts today" });
   }
 
-  const post = todaysPosts[0]; // newest today
+  const post = todaysPosts[0];
   const canonical = absUrl(post.slug);
 
-  // 3) Check if we already emailed this slug (avoid duplicates)
+  // 2) Avoid duplicates (see if we've already emailed this slug)
   const listResp = await fetch("https://api.buttondown.com/v1/emails?limit=50", {
     headers: { Authorization: `Token ${process.env.BUTTONDOWN_API_KEY}` },
     cache: "no-store",
@@ -73,7 +77,7 @@ async function runBroadcast(url: URL) {
     return NextResponse.json({ ok: true, message: "already emailed today", slug: post.slug });
   }
 
-  // 4) Create & schedule the email (send now; cron already runs "end of day")
+  // 3) Create & schedule the email (cron runs at end of day; send now)
   const subject = `new: ${post.title} — OSJ Dispatch`;
   const body = [
     `# ${post.title}`,
@@ -86,7 +90,7 @@ async function runBroadcast(url: URL) {
     "archive → https://heyosj.com/blog · about → https://heyosj.com/about",
   ].join("\n");
 
-  // schedule for ~30s from now
+  // Schedule ~30s from now to give API a moment
   const publish_date = new Date(Date.now() + 30 * 1000).toISOString();
 
   const createResp = await fetch("https://api.buttondown.com/v1/emails", {
@@ -97,11 +101,12 @@ async function runBroadcast(url: URL) {
     },
     body: JSON.stringify({
       subject,
-      body,                 // markdown allowed
+      body,                 // Markdown supported
       status: "scheduled",  // "scheduled" sends at publish_date
       publish_date,         // ISO timestamp
       email_type: "public",
       canonical_url: canonical,
+      // filters: {}         // Use later to target segments/tags
     }),
   });
 
@@ -119,17 +124,18 @@ async function runBroadcast(url: URL) {
   });
 }
 
-// Health check or trigger via GET (?key=...)
-export async function GET(req: Request) {
+// Health check or trigger via GET (Vercel Cron uses GET)
+export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-  if (url.searchParams.get("key")) {
-    return runBroadcast(url); // allow GET trigger (Vercel Cron default)
+  // If no auth, just show a hint
+  if (!req.headers.get("authorization") && !url.searchParams.get("key")) {
+    return NextResponse.json({ ok: true, hint: "GET/POST with CRON_SECRET header or ?key=…" });
   }
-  return NextResponse.json({ ok: true, hint: "GET/POST with ?key=…" });
+  return runBroadcast(req, url);
 }
 
-// Explicit POST trigger also supported
-export async function POST(req: Request) {
+// Manual trigger via POST also supported
+export async function POST(req: NextRequest) {
   const url = new URL(req.url);
-  return runBroadcast(url);
+  return runBroadcast(req, url);
 }
