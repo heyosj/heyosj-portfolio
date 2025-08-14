@@ -1,0 +1,93 @@
+---
+title: "MTA-STS"
+description: "Secure SMTP delivery with strict TLS: what it is, why it exists, how to roll it out."
+date: 2025-08-14
+tags: ["email security", "smtp", "tls"]
+---
+
+## smtp and starttls
+
+SMTP originally shipped without transport security. `STARTTLS` was added later to let MTAs upgrade a plaintext SMTP session to TLS. It’s **opportunistic**, though—an active attacker can **strip** the upgrade and keep the hop in cleartext, and many MTAs don’t strictly validate peer certificates/hostnames.
+
+## what is mta-sts
+
+**MTA Strict Transport Security** lets a receiving domain publish a policy that says:
+
+- deliver mail **only** to these **MX hostnames**, and
+- **require TLS** with a **valid CA-signed certificate** that matches those hostnames.
+
+Senders **fetch the policy over HTTPS** and **cache** it, which prevents downgrade/stripping and blocks delivery to impostor MX hosts.
+
+> note: mta-sts relies on normal TLS validation (CA chain + hostname match). It does **not** use certificate fingerprints.
+
+## reasons for mta-sts
+
+- **STARTTLS downgrade**: attackers can suppress the upgrade.
+- **Peer auth**: SMTP rarely enforced cert + hostname checks.
+- **DNS spoofing**: pointing senders at an attacker-controlled MX.
+- **Result**: mta-sts requires TLS and the **right** MX names, closing those gaps.
+
+## how it works (at a glance)
+
+1. Sender looks up the DNS TXT flag: `_mta-sts.<domain>`.
+2. If present, it fetches the policy file via HTTPS:
+   ```
+   https://mta-sts.<domain>/.well-known/mta-sts.txt
+   ```
+3. Policy lists **mode** and allowed **mx** hostnames.
+4. Sender connects only to listed MX hosts and requires a **valid cert** matching the MX name.
+5. If TLS/cert checks fail:
+   - **enforce** → do **not** deliver (bounce/queue)
+   - **testing** → still deliver; log/report
+   - **none** → ignore policy
+
+## steps to set up
+
+1) **Host the policy file** at:
+   ```
+   https://mta-sts.<your-domain>/.well-known/mta-sts.txt
+   ```
+
+   **Example policy:**
+   ```
+   version: STSv1
+   mode: testing
+   mx: mx1.mail.example.com
+   mx: *.mx.example.net
+   max_age: 86400
+   ```
+
+2) **Publish the DNS TXT flag:**
+   ```
+   _mta-sts.<your-domain>  TXT  "v=STSv1; id=2025-08-14"
+   ```
+   - Bump `id` when the policy changes to force refetch.
+
+3) **(Recommended) enable TLS-RPT** to receive reports:
+   ```
+   _smtp._tls.<your-domain>  TXT  "v=TLSRPTv1; rua=mailto:reports@<your-domain>"
+   ```
+
+4) **Fix your MX certificates**
+   - Public CA-signed
+   - CN/SAN covers **every** advertised MX hostname
+   - TLS 1.2+
+   - Plan rotation without losing hostname coverage
+
+5) **Rollout**
+   - Start `mode: testing` + watch TLS-RPT
+   - Move to `mode: enforce` once delivery looks clean
+
+## policy modes
+
+- **none** — published but inactive
+- **testing** — don’t block; observe via reports
+- **enforce** — require TLS + valid cert to a listed MX or don’t deliver
+
+## protection you get
+
+- **Downgrade (STARTTLS-stripping) attacks**
+- **MITM on SMTP hops**
+- Common misconfig like expired/invalid certs or wrong hostname
+
+> scope note: mta-sts is **transport (hop-to-hop)** security, not end-to-end message encryption.
