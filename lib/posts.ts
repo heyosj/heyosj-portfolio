@@ -24,12 +24,21 @@ const Frontmatter = z.object({
   // accept Date | string and coerce to "YYYY-MM-DD"
   date: z.preprocess((v) => {
     if (v instanceof Date) return v.toISOString().slice(0, 10);
-    if (typeof v === "string") return v; // assume already in a string form
+    if (typeof v === "string") return v;
     return String(v);
   }, z.string()),
+  // optional manual override for "updated"; otherwise we'll use file mtime
+  updated: z.preprocess((v) => {
+    if (v == null) return undefined;
+    if (v instanceof Date) return v.toISOString().slice(0, 10);
+    if (typeof v === "string") return v;
+    return String(v);
+  }, z.string().optional()),
   description: z.string().optional().default(""),
   tags: z.array(z.string()).optional().default([]),
   slug: Slug.optional(),
+  // allow number or string → number; default to 999
+  order: z.coerce.number().optional().default(999),
 });
 
 function slugifyFilename(file: string) {
@@ -54,11 +63,13 @@ async function markdownToHtml(markdown: string): Promise<string> {
 export type Post = {
   title: string;
   date: string;
+  updated: string;       // NEW
   description: string;
   tags: string[];
   slug: string;
   readingTime: string;
   html: string;
+  order: number;
 };
 
 export async function getAllPosts(): Promise<Post[]> {
@@ -67,7 +78,8 @@ export async function getAllPosts(): Promise<Post[]> {
   const posts: Post[] = [];
 
   for (const file of files) {
-    const raw = fs.readFileSync(path.join(postsDir, file), "utf8");
+    const fullPath = path.join(postsDir, file);
+    const raw = fs.readFileSync(fullPath, "utf8");
     const { content, data } = matter(raw);
 
     // parse & normalize frontmatter
@@ -77,13 +89,89 @@ export async function getAllPosts(): Promise<Post[]> {
     const rt = readingTime(content).text;
     const compiled = await markdownToHtml(content);
 
-    posts.push({ ...fm, slug, readingTime: rt, html: compiled });
+    // updated: frontmatter override OR file mtime
+    const stat = fs.statSync(fullPath);
+    const updated = fm.updated ?? stat.mtime.toISOString().slice(0, 10);
+
+    posts.push({ ...fm, slug, readingTime: rt, html: compiled, updated });
   }
 
-  return posts.sort((a, b) => +new Date(b.date) - +new Date(a.date));
+  // Sort by order first, then by date (descending)
+  return posts.sort(
+    (a, b) => (a.order ?? 999) - (b.order ?? 999) || +new Date(b.date) - +new Date(a.date)
+  );
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
   const posts = await getAllPosts();
   return posts.find((p) => p.slug === slug) || null;
+}
+
+// ---- Tag helpers ----
+export async function getPostsByTag(tag: string): Promise<Post[]> {
+  const posts = await getAllPosts();
+  const t = tag.toLowerCase();
+  return posts.filter((p) => p.tags.map((x) => x.toLowerCase()).includes(t));
+}
+
+export async function getAllTags(): Promise<string[]> {
+  const posts = await getAllPosts();
+  const tags = new Set<string>();
+  posts.forEach((p) => p.tags.forEach((t) => tags.add(t)));
+  return Array.from(tags).sort((a, b) => a.localeCompare(b));
+}
+
+// ---- Date helpers (for homepage) ----
+export async function getAllPostsByDate() {
+  const posts = await getAllPosts();
+  return [...posts].sort((a, b) => +new Date(b.date) - +new Date(a.date));
+}
+
+export async function getLatestPost() {
+  const posts = await getAllPostsByDate();
+  return posts[0] ?? null;
+}
+
+export async function getRecentPosts(limit = 5) {
+  const posts = await getAllPostsByDate();
+  return posts.slice(0, limit);
+}
+
+// ---- Related posts ----
+export async function getRelatedPosts(slug: string, limit = 3) {
+  const posts = await getAllPosts();
+  const current = posts.find((p) => p.slug === slug);
+  if (!current) return [];
+
+  const tagsLower = new Set(current.tags.map((t) => t.toLowerCase()));
+  const isSeries = tagsLower.has("email security");
+
+  if (isSeries) {
+    return posts
+      .filter(
+        (p) =>
+          p.slug !== slug &&
+          p.tags.map((t) => t.toLowerCase()).includes("email security")
+      )
+      .slice(0, limit);
+  }
+
+  const scored = posts
+    .filter((p) => p.slug !== slug)
+    .map((p) => {
+      const shared = p.tags.reduce(
+        (n, t) => n + (tagsLower.has(t.toLowerCase()) ? 1 : 0),
+        0
+      );
+      return { p, shared };
+    })
+    .filter((x) => x.shared > 0)
+    .sort((a, b) => {
+      if (b.shared !== a.shared) return b.shared - a.shared;
+      return +new Date(b.p.date) - +new Date(a.p.date);
+    })
+    .slice(0, limit)
+    .map((x) => x.p);
+
+  return scored;
 }

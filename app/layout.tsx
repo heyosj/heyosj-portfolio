@@ -1,6 +1,7 @@
 import "./globals.css";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle"; // ⬅️ Add this import
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: { default: "heyOSJ: Dispatch", template: "%s · heyOSJ: Dispatch" },
@@ -11,6 +12,7 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <Analytics />
       <body className="bg-paper text-ink dark:bg-paper-dark dark:text-ink-dark">
         <div id="progress" />
         <div className="mx-auto max-w-3xl px-5">
@@ -30,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </header>
           <main className="pb-24">{children}</main>
           <footer className="py-10 text-sm text-subtext dark:text-subtext-dark">
-            <p>© {new Date().getFullYear()} OSJ • security notes, no fluff.</p>
+            <p>© {new Date().getFullYear()} osj • security notes, no fluff.</p>
           </footer>
         </div>
         <script

@@ -1,32 +1,33 @@
 // app/page.tsx
 import SubscribeCTA from "@/components/SubscribeCTA";
-import { getAllPosts } from "@/lib/posts";
 import PostListItem from "@/components/PostListItem";
-import SubscribeInline from "../components/SubscribeInline"; // relative path to components
+import SubscribeInline from "@/components/SubscribeInline";
 import Link from "next/link";
+import { getLatestPost, getRecentPosts } from "@/lib/posts";
 
 export default async function Home() {
-  const posts = await getAllPosts();
-  const latest = posts.slice(0, 5);
+  // Date-based helpers so "latest" respects publish time
+  const latestPost = await getLatestPost();
+  const recent = await getRecentPosts(5);
 
   return (
     <section className="space-y-10">
       {/* HERO */}
       <div className="card p-5 sm:p-6 md:p-7">
-        <div className="space-y-2 sm:space-y-3">
-          {posts.length > 0 ? (
+        <div className="space-y-3">
+          {latestPost ? (
             <p className="text-xs sm:text-sm leading-6 muted">
               latest:{" "}
               <Link
-                href={`/blog/${posts[0].slug}`}
+                href={`/blog/${latestPost.slug}`}
                 className="underline underline-offset-2 decoration-accent hover:decoration-accent-600"
               >
-                {posts[0].title}
+                {latestPost.title}
               </Link>
             </p>
           ) : (
             <p className="text-xs sm:text-sm leading-6 muted">
-              new notes 1–2×/month
+              get new notes whenever i post ’em. no spam.
             </p>
           )}
 
@@ -45,9 +46,9 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* LATEST POSTS */}
+      {/* LATEST POSTS (by date) */}
       <div className="space-y-2">
-        {latest.map((p) => (
+        {recent.map((p) => (
           <PostListItem
             key={p.slug}
             slug={p.slug}
