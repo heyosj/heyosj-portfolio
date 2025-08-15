@@ -183,7 +183,7 @@ export async function POST(req: NextRequest, { params }: { params: { slug: strin
   });
 
   // Create & schedule email on Buttondown
-  const subject = `new: ${post.title} — OSJ Dispatch`;
+  const subject = `${post.title} — OSJ Dispatch`;
   const publish_date = new Date(Date.now() + 30_000).toISOString();
 
   const resp = await fetch("https://api.buttondown.com/v1/emails", {
