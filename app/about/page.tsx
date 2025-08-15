@@ -48,7 +48,7 @@ export default function About() {
       >
         <h2>why this exists</h2>
         <ul>
-          <li><strong>clarity first.</strong> explain security concepts the way i use them at work.</li>
+          <li><strong>clarity first.</strong> explain → configure → verify.</li>
           <li><strong>trace my thinking.</strong> decisions, trade-offs, and gotchas — not just the happy path.</li>
           <li><strong>grow over time.</strong> add posts as i learn; mark updates when i revisit topics.</li>
         </ul>
@@ -107,7 +107,7 @@ export default function About() {
           <li>refining controls so high-signal events get through and noise stays out.</li>
           <li>metrics that show what’s working and what to fix next.</li>
           <li>agent-assisted workflows to remove repetitive steps and speed response.</li>
-          <li>applying omscs work to real systems: networks, security, and ml safety.</li>
+          <li>applying topics i study work to real systems: networks, security, and ml safety.</li>
         </ul>
       </article>
 
