@@ -1,0 +1,36 @@
+---
+title: "SMTP TLS Reporting (TLS-RPT)"
+description: "what TLS-RPT is, why it matters, and the minimal steps to enable it."
+date: "2025-08-16"
+slug: "smtp-tls-reporting"
+tags: ["email security", "smtp", "tls", "mta-sts", "dane"]
+order: 4
+---
+
+> **TL;DR** — TLS-RPT lets you receive aggregate reports about STARTTLS and policy failures so you can catch transport misconfigurations (expired certs, hostname mismatches, missing STARTTLS, bad MTA-STS/DANE) early.
+
+## what it is
+
+**SMTP TLS reporting (TLS-RPT)** lets a domain publish an address where aggregate summaries of TLS negotiation success/failure should be sent.
+
+## why it matters
+
+reports surface issues that break or weaken secure mail transport:
+- invalid/expired certificates, hostname mismatches, or no STARTTLS support.
+- problems with mta-sts policies, DANE/TLSA records, or policy retrieval.
+
+without TLS-RPT, when TLS handshakes fail, the sending MTA generally can’t notify you about transport problems.
+
+## minimum viable enablement
+
+1. publish a DNS TXT record advertising your TLS-RPT report address (rua).
+2. choose delivery: email mailbox and/or HTTPS POST endpoint (you can set multiple).
+3. expect JSON aggregates; using a third-party parser can make review easier.
+
+### example DNS record
+
+```txt
+_smtp._tls.example.com. 3600 IN TXT "v=TLSRPTv1; rua=mailto:tlsrpt@example.com,https://reports.example.com/tlsrpt"
+```
+
+> replace `example.com` and the mailbox/URL with your real domain and destination. keep TTL reasonable (e.g., 3600) while testing.
