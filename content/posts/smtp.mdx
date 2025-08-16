@@ -1,9 +1,10 @@
 ---
 title: "SMTP"
+description: "How SMTP moves mail between servers and where it fits alongside IMAP/POP."
+date: "2025-08-15"
+slug: "smtp"
+tags: ["email security", "smtp", "transport"]
 order: 1
-summary: "How SMTP moves mail and where it fits alongside IMAP/POP."
-tags: ["email", "smtp", "mail transport"]
-updated: "2025-08-15"
 ---
 
 > **TL;DR:** SMTP moves mail **between** servers (and from clients to servers). IMAP/POP move mail **to the user** for reading. Typical ports: **25** (server↔server), **587** (client submission with STARTTLS), **465** (implicit TLS, a.k.a. SMTPS), **2525** (provider fallback).
