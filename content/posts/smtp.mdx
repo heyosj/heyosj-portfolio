@@ -1,0 +1,60 @@
+---
+title: "SMTP"
+order: 1
+summary: "How SMTP moves mail and where it fits alongside IMAP/POP."
+tags: ["email", "smtp", "mail transport"]
+updated: "2025-08-15"
+---
+
+> **TL;DR:** SMTP moves mail **between** servers (and from clients to servers). IMAP/POP move mail **to the user** for reading. Typical ports: **25** (server↔server), **587** (client submission with STARTTLS), **465** (implicit TLS, a.k.a. SMTPS), **2525** (provider fallback).
+
+# SMTP
+
+## Glossary
+
+- **SMTP** — Simple Mail Transfer Protocol
+- **MTA** — Mail Transfer Agent (relays mail to other servers)
+- **DNS** — Domain Name **System**
+- **MSA** — Mail Submission Agent (accepts mail from clients)
+- **MDA** — Mail Delivery Agent (places mail into a mailbox)
+- **SSL** — Secure Sockets Layer (legacy)
+- **TLS** — Transport Layer Security (current standard)
+- **IMAP** — Internet Message Access Protocol (mail retrieval)
+- **POP** — Post Office Protocol (mail retrieval)
+
+## How does it work?
+
+SMTP defines how email is handed off from a client or server to the **next** server.
+
+1. A user’s email client connects to an **MSA** to submit a message.
+2. The **MTA** inspects the recipient’s domain (e.g., `user@example.com`).
+3. The MTA queries **DNS** for that domain’s **MX** record(s), then resolves those hosts to IP addresses.
+4. The sending MTA opens an SMTP connection to the receiving server and transfers the message.
+5. The receiving side hands the message to an **MDA**, which stores it in the recipient’s mailbox.
+
+> **SMTP envelope vs. headers:** The **envelope** (MAIL FROM/RCPT TO) tells servers where mail is from and where it’s going. It’s distinct from the **message headers/body** that recipients see (e.g., `From:`, `To:`, `Subject:`).
+
+### Minimal flow (simplified)
+
+```
+client → MSA → MTA (sender) → MTA (recipient) → MDA → mailbox → IMAP/POP → user
+```
+
+## SMTP servers & roles
+
+- **MSA**: Receives mail from clients, enforces auth/rate limits/policies.
+- **MTA**: Relays mail to the next hop based on DNS (MX) lookup and policy.
+- **MDA**: Accepts final delivery and writes to the user’s mailbox store.
+
+## Ports SMTP uses
+
+- **25** — Primary **server-to-server** transport. Often blocked on residential/enterprise egress to prevent abuse.
+- **587** — **Message submission** for clients. Use **STARTTLS** and authentication.
+- **465** — **Implicit TLS** (SMTPS). Common in the wild; some providers require/offer it.
+- **2525** — Non-standard, but many providers support it as an alternative when 25/587 are blocked.
+
+> Note: SSL is deprecated; use **TLS**. Prefer authenticated submission on **587** with STARTTLS when available.
+
+## SMTP vs. IMAP/POP
+
+SMTP moves messages **between servers** (and from client → server). To **read** mail, clients connect to the mailbox using **IMAP** (synchronizes folders, supports multiple devices) or **POP** (downloads, typically simpler/one-device workflows).
