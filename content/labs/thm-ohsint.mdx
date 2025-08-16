@@ -1,8 +1,8 @@
 ---
-title: "OHsint (TryHackMe) — OSINT Lab (redacted)"
-description: "Method-first walkthrough of TryHackMe's OHsint with sensitive details masked for a portfolio-safe post."
+title: "OHsint (TryHackMe) — OSINT Lab"
+description: "how i solved ohsint (tryhackme) — a small osint lab about turning one photo into real-world context using only public breadcrumbs; process first, pii redacted."
 date: "2025-08-16"
-slug: "ohsint-tryhackme-redacted"
+slug: "ohsint-tryhackme"
 tags: ["labs", "osint", "exif", "metadata", "twitter", "wigle", "github"]
 order: 1
 ---
@@ -41,8 +41,10 @@ exiftool WindowsXP.jpg | tee exif.txt
 
 look for fields like **Artist/Creator/Copyright** that can disclose a unique **handle**.
 
-<details><summary>hint: where the handle is</summary>
-the handle appears in a copyright/creator-like field. use it as your primary pivot.
+<details>
+  <summary>hint: where the handle is</summary>
+
+  the handle appears in a copyright/creator-like field. use it as your primary pivot.
 </details>
 
 ### 2) pivot on the handle
@@ -50,8 +52,10 @@ the handle appears in a copyright/creator-like field. use it as your primary piv
 - search the handle on X (twitter), wordpress, github.  
 - confirm the same person by cross-referencing avatar, bio, or linked sites.
 
-<details><summary>answer: avatar</summary>
-the X (twitter) **avatar** is a **cat**.
+<details>
+  <summary>answer: avatar</summary>
+
+  the X (twitter) **avatar** is a **cat**.
 </details>
 
 ### 3) mine posts for network clues
@@ -64,34 +68,42 @@ wigle tips
 - a free account may be required to view results
 ```
 
-<details><summary>answers: city + SSID (masked)</summary>
-**city:** L****** (greater metro area)  
-**SSID:** U********WiFi
+<details>
+  <summary>answers: city + SSID (masked)</summary>
+
+  **city:** L****** (greater metro area)  
+  **SSID:** U********WiFi
 </details>
 
 ### 4) find a personal email
 
 pivot to the subject’s **github** or personal site; look for an email in repo metadata, README, or commit history.
 
-<details><summary>answers: email + where found (masked)</summary>
-**email:** O*********@g****.com  
-**found on:** github
+<details>
+  <summary>answers: email + where found (masked)</summary>
+
+  **email:** O*********@g****.com  
+  **found on:** github
 </details>
 
 ### 5) confirm travel / holiday
 
 scan posts or blog entries for recent **travel** mentions.
 
-<details><summary>answer: holiday location (masked)</summary>
-**location:** N** Y***
+<details>
+  <summary>answer: holiday location (masked)</summary>
+
+  **location:** N** Y***
 </details>
 
 ### 6) inspect page source for leaks
 
 open the personal site → **view source** and search for likely secret patterns (e.g., password-like strings).
 
-<details><summary>answer: exposed password (masked)</summary>
-`p****YDr0****.!`
+<details>
+  <summary>answer: exposed password (masked)</summary>
+
+  `p****YDr0****.!`
 </details>
 
 ---

@@ -1,16 +1,17 @@
+// app/(site)/labs/page.tsx
 import Link from "next/link";
+import { getAllLabs } from "@/lib/labs";
 
 export const metadata = { title: "labs" };
+export const runtime = "nodejs";
 
-export default function Labs() {
-  const items: Array<{ title: string; blurb: string; href: string }> = [];
+export default async function Labs() {
+  const items = await getAllLabs();
 
   return (
     <section className="space-y-10">
-      {/* keep a semantic section title for SEO/a11y */}
       <h1 className="sr-only">labs</h1>
 
-      {/* HERO (matches dispatch card sizing) */}
       <div className="card p-5 sm:p-6 md:p-7">
         <div className="space-y-3">
           <h2 className="font-serif leading-[1.15] text-3xl md:text-4xl">
@@ -23,7 +24,6 @@ export default function Labs() {
         </div>
       </div>
 
-      {/* LIST / EMPTY STATE */}
       {items.length === 0 ? (
         <div className="card p-5 sm:p-6">
           <p className="muted">
@@ -34,11 +34,14 @@ export default function Labs() {
       ) : (
         <ul className="grid gap-3">
           {items.map((it) => (
-            <li key={it.title} className="card p-5">
+            <li key={it.slug} className="card p-5">
               <h3 className="font-serif text-xl">
-                <Link href={it.href} className="underline">{it.title}</Link>
+                <Link href={`/labs/${it.slug}`} className="underline">
+                  {it.title}
+                </Link>
               </h3>
-              <p className="muted mt-1">{it.blurb}</p>
+              {it.summary ? <p className="muted mt-1">{it.summary}</p> : null}
+              <p className="muted mt-1 text-sm">{new Date(it.date).toLocaleDateString()}</p>
             </li>
           ))}
         </ul>
