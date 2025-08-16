@@ -14,22 +14,23 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       storageKey="theme"
       disableTransitionOnChange
     >
-      {/* normal header */}
-      <header className="py-6 flex items-center justify-between">
-        <Link href="/" className="font-semibold tracking-tight">heyosj</Link>
-      </header>
+      {/* header — same look, no floating pieces */}
+      <header className="py-6">
+        <div className="mx-auto max-w-3xl px-5 flex items-center justify-between">
+          <Link href="/" className="font-semibold tracking-tight">heyosj</Link>
 
-      {/* anchored, fixed toggle aligned to your container (max-w-3xl) */}
-      <div className="fixed top-4 inset-x-0 z-[2147483647] pointer-events-none">
-        <div className="mx-auto max-w-3xl px-5 flex justify-end">
-          {/* re-enable clicks only on the button */}
-          <div className="pointer-events-auto">
+          {/* keep whatever links you already render here, then the toggle */}
+          <div className="flex items-center gap-4">
+            {/* <Link href="/playbooks" className="muted hover:underline">playbooks</Link>
+            <Link href="/labs" className="muted hover:underline">labs</Link>
+            <Link href="/about" className="muted hover:underline">about</Link> */}
             <ThemeToggle />
           </div>
         </div>
-      </div>
+      </header>
 
-      <main className="pb-24">{children}</main>
+      {/* content container matches header width */}
+      <main className="mx-auto max-w-3xl px-5 pb-24">{children}</main>
     </ThemeProvider>
   );
 }
