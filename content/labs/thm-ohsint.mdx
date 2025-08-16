@@ -1,0 +1,129 @@
+---
+title: "OHsint (TryHackMe) — OSINT Lab (redacted)"
+description: "Method-first walkthrough of TryHackMe's OHsint with sensitive details masked for a portfolio-safe post."
+date: "2025-08-16"
+slug: "ohsint-tryhackme-redacted"
+tags: ["labs", "osint", "exif", "metadata", "twitter", "wigle", "github"]
+order: 1
+---
+
+> **disclaimer** — this post uses **only publicly available information** from a training room. sensitive details are **masked** to avoid sharing personally identifiable information. methods shown are for **educational** purposes.
+
+## briefing
+
+- **room:** OHsint (TryHackMe)
+- **goal:** use public info to answer 7 questions about a subject.
+- **artifact provided:** `WindowsXP.jpg`
+
+## plan of attack
+
+1. **metadata** → `exiftool WindowsXP.jpg` to enumerate EXIF/IPTC/XMP fields.  
+2. **handle pivot** → search the discovered handle across X (twitter), wordpress, github.  
+3. **network breadcrumbs** → parse posts for **BSSID**; look up on **WiGLE** to infer **city** + **SSID**.  
+4. **identity** → pull **email** from public repos or profile pages.  
+5. **content mining** → review blog/posts for travel or other personal hints.  
+6. **source review** → inspect page **source** for accidental secrets (inline JS, commented creds).  
+
+## tools used
+
+- `exiftool` for metadata
+- web search (exact-handle queries)
+- WiGLE (BSSID → geolocation / SSID)
+- browser dev tools (“view source”)
+
+## step-by-step (sanitized)
+
+### 1) extract metadata
+
+```bash
+exiftool WindowsXP.jpg | tee exif.txt
+```
+
+look for fields like **Artist/Creator/Copyright** that can disclose a unique **handle**.
+
+<details><summary>hint: where the handle is</summary>
+the handle appears in a copyright/creator-like field. use it as your primary pivot.
+</details>
+
+### 2) pivot on the handle
+
+- search the handle on X (twitter), wordpress, github.  
+- confirm the same person by cross-referencing avatar, bio, or linked sites.
+
+<details><summary>answer: avatar</summary>
+the X (twitter) **avatar** is a **cat**.
+</details>
+
+### 3) mine posts for network clues
+
+on the X profile, note a posted **BSSID** (AP MAC). query it on **WiGLE** to resolve **city** and **SSID**.
+
+```text
+wigle tips
+- use "search" → "basic" → BSSID (MAC)
+- a free account may be required to view results
+```
+
+<details><summary>answers: city + SSID (masked)</summary>
+**city:** L****** (greater metro area)  
+**SSID:** U********WiFi
+</details>
+
+### 4) find a personal email
+
+pivot to the subject’s **github** or personal site; look for an email in repo metadata, README, or commit history.
+
+<details><summary>answers: email + where found (masked)</summary>
+**email:** O*********@g****.com  
+**found on:** github
+</details>
+
+### 5) confirm travel / holiday
+
+scan posts or blog entries for recent **travel** mentions.
+
+<details><summary>answer: holiday location (masked)</summary>
+**location:** N** Y***
+</details>
+
+### 6) inspect page source for leaks
+
+open the personal site → **view source** and search for likely secret patterns (e.g., password-like strings).
+
+<details><summary>answer: exposed password (masked)</summary>
+`p****YDr0****.!`
+</details>
+
+---
+
+## command snippets
+
+```bash
+# 1) EXIF/metadata
+exiftool WindowsXP.jpg | tee exif.txt
+
+# 2) fast handle pivots (replace <handle>)
+# X (twitter) profile
+open "https://x.com/<handle>"
+# GitHub code search
+open "https://github.com/search?q=<handle>"
+# WordPress author archive (if seen)
+open "https://wordpress.com/search?q=<handle>"
+
+# 3) WiGLE BSSID lookup (replace with observed BSSID)
+open "https://wigle.net"
+
+# 4) source-code scan on a personal site
+# mac
+open -a "Google Chrome" "view-source:https://<site>"
+# linux
+xdg-open "view-source:https://<site>"
+```
+
+## ethics & ops (the short version)
+
+- public stuff only — no logins, no scraped dumps, no work data. if it isn’t already on the open internet, i don’t use it.
+- keep people out of the blast radius — blur emails, trim bssids/addresses, crop faces.
+- no naming-and-shaming — don’t name real folks/companies unless they’ve said it’s ok; call them “the subject.”
+- don’t hoard pii — grab what i need to learn, toss the rest.
+- this is training content, not targeting guidance.
