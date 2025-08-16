@@ -9,3 +9,14 @@ module.exports = {
     ];
   },
 };
+
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async redirects() {
+    return [
+      { source: '/blog/:path*', destination: '/dispatch/:path*', permanent: true },
+    ];
+  },
+};
+module.exports = nextConfig;

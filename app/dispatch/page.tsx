@@ -19,7 +19,7 @@ export default async function Dispatch() {
             <p className="text-xs sm:text-sm leading-6 muted">
               latest:{" "}
               <Link
-                href={`/blog/${latestPost.slug}`}
+                href={`/dispatch/${latestPost.slug}`}
                 className="underline underline-offset-2 decoration-accent hover:decoration-accent-600"
               >
                 {latestPost.title}
