@@ -1,48 +1,80 @@
-import Link from "next/link";
+// app/(site)/playbooks/page.tsx
+import { getPlaybooksMeta } from '@/lib/playbooks';
+import Link from 'next/link';
+import type { Metadata } from 'next';
 
-export const metadata = { title: "playbooks" };
+export const metadata: Metadata = {
+  title: 'playbooks | heyosj',
+  description:
+    'Short, vendor-agnostic implementation notes you can roll out quickly.',
+  openGraph: {
+    title: 'playbooks | heyosj',
+    description:
+      'Short, vendor-agnostic implementation notes you can roll out quickly.',
+    type: 'website',
+    url: '/playbooks',
+  },
+};
 
-export default function Playbooks() {
-  const items: Array<{ title: string; blurb: string; href: string }> = [];
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--card)]/70 px-2.5 py-0.5 text-xs"
+      // keep them “quiet”
+      style={{ pointerEvents: 'none' }}
+    >
+      {children}
+    </span>
+  );
+}
+
+export default function PlaybooksPage() {
+  const items = getPlaybooksMeta(); // server-only
 
   return (
-    <section className="space-y-10">
-      {/* keep a semantic section title for SEO/a11y */}
-      <h1 className="sr-only">playbooks</h1>
-
-      {/* HERO (matches dispatch card sizing) */}
-      <div className="card p-5 sm:p-6 md:p-7">
-        <div className="space-y-3">
-          <h2 className="font-serif leading-[1.15] text-3xl md:text-4xl">
-            concise playbooks, ready to run.
-          </h2>
-          <p className="muted text-base md:text-lg max-w-prose">
-            guides, checklists, and repeatable workflows. each one pairs a script with
-            when/why to use it and how to verify it worked.
-          </p>
+    <section className="mx-auto max-w-3xl space-y-8">
+      {/* Hero / intro */}
+      <div className="card p-6 md:p-8">
+        <h1 className="text-4xl font-serif leading-tight">playbooks.</h1>
+        <p className="muted mt-2">
+          crisp, practical guides focused on rollouts — less theory, more shipping.
+          each note spells out what to check, why it matters, and the minimum steps
+          to implement.
+        </p>
+        <div className="mt-3 text-sm muted">
+          {items.length} playbook{items.length === 1 ? '' : 's'}
         </div>
       </div>
 
-      {/* LIST / EMPTY STATE */}
-      {items.length === 0 ? (
-        <div className="card p-5 sm:p-6">
-          <p className="muted">
-            nothing here yet — i’ll add actionable guides soon. for now, see{" "}
-            <Link href="/dispatch" className="underline">dispatch</Link>.
-          </p>
-        </div>
-      ) : (
-        <ul className="grid gap-3">
-          {items.map((it) => (
-            <li key={it.title} className="card p-5">
-              <h3 className="font-serif text-xl">
-                <Link href={it.href} className="underline">{it.title}</Link>
-              </h3>
-              <p className="muted mt-1">{it.blurb}</p>
+      {/* List */}
+      <ul className="space-y-4">
+        {items.map((p) => {
+          const primaryTag = p.tags?.[0] ?? null;
+          return (
+            <li key={p.slug} className="card p-4">
+              <div className="space-y-2">
+                <Link
+                  href={p.url}
+                  className="text-lg font-semibold hover:underline"
+                >
+                  {p.title}
+                </Link>
+                <p className="muted">{p.description}</p>
+
+                {/* meta row: date pill + (optional) single tag pill */}
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <Pill>{p.date}</Pill>
+                  {primaryTag && <Pill>{primaryTag}</Pill>}
+                </div>
+              </div>
             </li>
-          ))}
-        </ul>
-      )}
+          );
+        })}
+
+        {!items.length && (
+          <li className="muted">no playbooks yet — check back soon.</li>
+        )}
+      </ul>
     </section>
   );
 }
