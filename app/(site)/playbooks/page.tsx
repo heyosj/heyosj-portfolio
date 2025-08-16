@@ -35,7 +35,7 @@ export default function PlaybooksPage() {
     <section className="mx-auto max-w-3xl space-y-8">
       {/* Hero / intro */}
       <div className="card p-6 md:p-8">
-        <h1 className="text-4xl font-serif leading-tight">playbooks.</h1>
+        <h1 className="text-4xl font-serif leading-tight">scripts & tools</h1>
         <p className="muted mt-2">
           i like building small scripts and utilities. these playbooks document the tools i’ve written and actually reuse.
           when a problem repeats, i script it; when the script is useful, it lands here with setup, commands, and troubleshooting.
