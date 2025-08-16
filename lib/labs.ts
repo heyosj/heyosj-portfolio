@@ -6,6 +6,7 @@ import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
+import React from "react";
 
 export type LabFrontmatter = {
   title: string;
@@ -38,7 +39,7 @@ export type LabDoc = {
     description: string;
     date: string;
     tags: string[];
-    readMin: number;        // ← add read time
+    readMin: number;
   };
 };
 
@@ -62,6 +63,26 @@ export function readLabFrontmatter(filePath: string): Partial<LabFrontmatter> {
   const { data } = matter(raw);
   return data as Partial<LabFrontmatter>;
 }
+
+/** theme-aware MDX component mapping (no TSX; uses React.createElement) */
+const mdxComponents = {
+  h2: (props: any) =>
+    React.createElement("h2", { className: "mt-10 text-2xl font-semibold", ...props }),
+  h3: (props: any) =>
+    React.createElement("h3", { className: "mt-8 text-xl font-semibold", ...props }),
+  p: (props: any) =>
+    React.createElement("p", { className: "leading-relaxed", ...props }),
+  ul: (props: any) =>
+    React.createElement("ul", { className: "list-disc pl-6 space-y-2", ...props }),
+  ol: (props: any) =>
+    React.createElement("ol", { className: "list-decimal pl-6 space-y-2", ...props }),
+  blockquote: (props: any) =>
+    React.createElement("blockquote", { className: "border-l-4 border-[var(--border)] pl-4 italic", ...props }),
+  code: (props: any) =>
+    React.createElement("code", { className: "rounded-md border border-[var(--border)] bg-[var(--card)] px-1.5 py-0.5 text-[0.95em] text-[var(--ink)]", ...props }),
+  pre: (props: any) =>
+    React.createElement("pre", { className: "rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--ink)] overflow-x-auto p-4 text-sm", ...props }),
+};
 
 /** Return all published labs, sorted by (order ASC, date DESC). */
 export async function getAllLabs(): Promise<LabListItem[]> {
@@ -122,14 +143,15 @@ export async function getLabBySlug(slug: string): Promise<LabDoc | null> {
   const words = content.trim().split(/\s+/).length;
   const readMin = Math.max(1, Math.ceil(words / 220));
 
-  // Compile MDX → React node (RSC-safe)
+  // Compile MDX → React node (RSC-safe) WITH styled components
   const { content: mdx } = await compileMDX({
     source: content,
+    components: mdxComponents,
     options: {
       parseFrontmatter: false,
       mdxOptions: {
         remarkPlugins: [remarkGfm],
-        // IMPORTANT: no rehype-raw here (breaks RSC); HTML-like tags are fine as MDX JSX.
+        // IMPORTANT: no rehype-raw here (breaks RSC)
         rehypePlugins: [rehypeSlug],
       },
     },
