@@ -58,7 +58,7 @@ export default function About() {
           <p className="muted leading-relaxed">
             if you spot anything off,{" "}
             <Link
-              href="mailto:ojsanch@gmail.com"
+              href="mailto:me@heyosj.com"
               target="_blank"
               rel="noreferrer noopener"
               className="font-medium underline underline-offset-2 decoration-accent hover:decoration-accent-600"
