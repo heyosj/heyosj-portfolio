@@ -1,5 +1,7 @@
 // app/(home)/page.tsx
 import Link from "next/link";
+import MailLink from '@/components/MailLink';
+
 
 export const metadata = { title: "home" };
 
@@ -37,23 +39,10 @@ export default function Home() {
       </div>
 
       <p className="muted">
-        say hi:{" "}
-        <Link
-          className="underline"
-          href="https://www.linkedin.com/in/osanchezjr"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          linkedin
-        </Link>{" "}
-        •{" "}
-        <Link className="underline" href="https://x.com/heyosj" target="_blank" rel="noopener noreferrer">
-          x
-        </Link>{" "}
-        •{" "}
-        <Link className="underline" href="https://github.com/heyosj" target="_blank" rel="noopener noreferrer">
-          github
-        </Link>
+        say hi: <MailLink />{" "}
+        • <a className="underline" href="https://www.linkedin.com/in/osanchezjr" target="_blank" rel="noopener noreferrer">linkedin</a>{" "}
+        • <a className="underline" href="https://x.com/heyosj" target="_blank" rel="noopener noreferrer">x</a>{" "}
+        • <a className="underline" href="https://github.com/heyosj" target="_blank" rel="noopener noreferrer">github</a>
       </p>
     </section>
   );
