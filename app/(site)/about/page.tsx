@@ -1,10 +1,13 @@
 import Link from "next/link";
+import BackLink from "@/components/BackLink";
 
 export const metadata = { title: "About" };
 
 export default function About() {
   return (
     <section className="space-y-8">
+      <BackLink />
+
       {/* Hero card */}
       <div className="card">
         <div className="text-3xl">👋</div>
@@ -14,18 +17,9 @@ export default function About() {
           vendor-agnostic, focused on things you can actually roll out.
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <Link href="https://www.linkedin.com/in/osanchezjr" target="_blank" className="btn">
-            linkedin
-          </Link>
-          <Link href="https://x.com/heyosj" target="_blank" className="btn">
-            x
-          </Link>
-          <Link href="https://github.com/heyosj" target="_blank" className="btn">
-            github
-          </Link>
-          {/* <Link href="mailto:me@heyosj.com" className="btn">
-            email
-          </Link> */}
+          <Link href="https://www.linkedin.com/in/osanchezjr" target="_blank" className="btn">linkedin</Link>
+          <Link href="https://x.com/heyosj" target="_blank" className="btn">x</Link>
+          <Link href="https://github.com/heyosj" target="_blank" className="btn">github</Link>
         </div>
       </div>
 
@@ -42,7 +36,6 @@ export default function About() {
           "prose-pre:bg-card dark:prose-pre:bg-card-dark",
           "prose-pre:border prose-pre:border-border dark:prose-pre:border-border-dark",
           "prose-headings:mt-6 prose-headings:mb-2",
-          // slightly looser list spacing so the bottom breathes
           "prose-p:my-2 prose-ul:my-3 prose-li:my-1.5 leading-relaxed",
         ].join(" ")}
       >
@@ -55,21 +48,10 @@ export default function About() {
 
         <h2>what you’ll find</h2>
         <ul>
-          <li>
-            <strong>notes across domains.</strong> email security, cloud &amp; identity, detection engineering,
-            incident response, and operational hygiene — wherever i’m currently digging.
-          </li>
-          <li>
-            <strong>standalone posts, with optional paths.</strong> most notes work on their own; when a sequence helps,
-            i group them into a loose series with prev/next.
-          </li>
-          <li>
-            <strong>practical artifacts.</strong> configs, checks, and tiny checklists you can drop into real work.
-          </li>
-          <li>
-            <strong>tags to jump around.</strong> use tags to explore; some tags (like “email security”) have a rough order
-            if you’re starting fresh.
-          </li>
+          <li><strong>notes across domains.</strong> email security, cloud &amp; identity, detection engineering, incident response, and operational hygiene.</li>
+          <li><strong>standalone posts, with optional paths.</strong> most notes work on their own; when a sequence helps, i group them into a loose series.</li>
+          <li><strong>practical artifacts.</strong> configs, checks, and tiny checklists you can drop into real work.</li>
+          <li><strong>tags to jump around.</strong> some tags (like “email security”) have a rough order if you’re starting fresh.</li>
         </ul>
 
         <div className="not-prose rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 my-6">
@@ -107,11 +89,10 @@ export default function About() {
           <li>refining controls so high-signal events get through and noise stays out.</li>
           <li>metrics that show what’s working and what to fix next.</li>
           <li>agent-assisted workflows to remove repetitive steps and speed response.</li>
-          <li>applying topics i study work to real systems: networks, security, and ml safety.</li>
+          <li>applying topics i study to real systems: networks, security, and ml safety.</li>
         </ul>
       </article>
 
-      {/* low-key repo link; delete if you want to keep it private */}
       <div className="not-prose mt-2 text-xs opacity-70">
         curious how this site works?{" "}
         <Link

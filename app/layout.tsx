@@ -1,7 +1,5 @@
 import "./globals.css";
-import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle"; // ⬅️ Add this import
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react";
 
 export const metadata = {
   title: { default: "heyosj", template: "%s | heyosj" },
@@ -11,41 +9,35 @@ export const metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-paper text-ink dark:bg-paper-dark dark:text-ink-dark">
-        <div id="progress" />
-        <div className="mx-auto max-w-3xl px-5">
-          <header className="py-6 flex items-center justify-between">
-            <Link href="/" className="font-semibold tracking-tight">
-              dispatch | heyosj
-            </Link>
-            <nav className="flex items-center gap-4 text-sm">
-              <Link href="/dispatch/archive" className="hover:underline">
-                archive
-              </Link>
-              <Link href="/about" className="hover:underline">
-                about
-              </Link>
-              <ThemeToggle /> {/* ⬅️ Toggle button added here */}
-            </nav>
-          </header>
-          <main className="pb-24">{children}</main>
-          <footer className="py-10 text-sm text-subtext dark:text-subtext-dark">
-            <p>© {new Date().getFullYear()} osj • security notes, no fluff.</p>
-          </footer>
-        </div>
+    // DO NOT hardcode class="dark" here
+    <html lang="en" suppressHydrationWarning>
+      <body className="flex min-h-screen flex-col bg-paper text-ink dark:bg-paper-dark dark:text-ink-dark">
+        {/* 1) set theme BEFORE anything renders; body is valid place (no hydration error) */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-          (function(){
-            var bar=document.getElementById('progress'); var ticking=false;
-            function update(){ var h=document.documentElement, b=document.body;
-              var percent=((h.scrollTop||b.scrollTop)/(h.scrollHeight-h.clientHeight))*100;
-              bar.style.width=percent+'%'; ticking=false; }
-            window.addEventListener('scroll',function(){ if(!ticking){requestAnimationFrame(update); ticking=true;}},{passive:true});
-          })();`,
+              (function () {
+                try {
+                  var t = localStorage.getItem('theme');
+                  var dark = t ? (t === 'dark')
+                               : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var c = document.documentElement.classList;
+                  if (dark) c.add('dark'); else c.remove('dark');
+                } catch (e) {}
+              })();
+            `,
           }}
         />
+        {/* main */}
+        <main className="flex-1">
+          <div className="mx-auto max-w-3xl px-5">{children}</div>
+        </main>
+        {/* footer */}
+        <footer className="py-10 text-sm text-subtext dark:text-subtext-dark">
+          <div className="mx-auto max-w-3xl px-5">
+            <p>© {new Date().getFullYear()} osj • security notes, no fluff.</p>
+          </div>
+        </footer>
         <Analytics />
       </body>
     </html>

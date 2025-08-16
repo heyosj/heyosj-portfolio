@@ -15,6 +15,9 @@ export default async function Dispatch() {
     <section className="space-y-10">
       <div className="card p-5 sm:p-6 md:p-7">
         <div className="space-y-3">
+          {/* <p className="text-xs muted">
+            <Link href="/" className="underline">← home</Link>
+          </p> */}
           {latestPost ? (
             <p className="text-xs sm:text-sm leading-6 muted">
               latest:{" "}

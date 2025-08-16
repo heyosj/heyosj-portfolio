@@ -3,38 +3,39 @@
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
-  // Load saved theme or system preference
   useEffect(() => {
-    const isDark =
-      localStorage.theme === "dark" ||
-      (!("theme" in localStorage) &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDark(isDark);
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    }
+    // read initial from <html> (set by the inline script)
+    const html = document.documentElement;
+    const dark = html.classList.contains("dark");
+    setIsDark(dark);
+    setMounted(true);
   }, []);
 
-  const toggleTheme = () => {
-    const newDark = !dark;
-    setDark(newDark);
-    if (newDark) {
-      document.documentElement.classList.add("dark");
-      localStorage.theme = "dark";
+  function toggle() {
+    const html = document.documentElement;
+    const next = !isDark;
+    setIsDark(next);
+    if (next) {
+      html.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.theme = "light";
+      html.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
-  };
+  }
+
+  if (!mounted) return null; // avoid mismatch on first render
 
   return (
     <button
-      onClick={toggleTheme}
-      className="p-2 rounded bg-card dark:bg-card-dark text-ink dark:text-ink-dark"
+      onClick={toggle}
+      className="text-sm rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark px-2.5 py-1.5"
+      aria-label="toggle theme"
     >
-      {dark ? "☀️ light" : "🌙 dark"}
+      {isDark ? "🌙 dark" : "🌞 light"}
     </button>
   );
 }
