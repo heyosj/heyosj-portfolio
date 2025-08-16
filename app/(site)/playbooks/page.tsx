@@ -37,13 +37,12 @@ export default function PlaybooksPage() {
       <div className="card p-6 md:p-8">
         <h1 className="text-4xl font-serif leading-tight">playbooks.</h1>
         <p className="muted mt-2">
-          crisp, practical guides focused on rollouts — less theory, more shipping.
-          each note spells out what to check, why it matters, and the minimum steps
-          to implement.
+          i like building small scripts and utilities. these playbooks document the tools i’ve written and actually reuse.
+          when a problem repeats, i script it; when the script is useful, it lands here with setup, commands, and troubleshooting.
         </p>
-        <div className="mt-3 text-sm muted">
+        {/* <div className="mt-3 text-sm muted">
           {items.length} playbook{items.length === 1 ? '' : 's'}
-        </div>
+        </div> */}
       </div>
 
       {/* List */}
