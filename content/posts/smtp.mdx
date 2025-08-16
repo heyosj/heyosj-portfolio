@@ -15,7 +15,7 @@ order: 1
 
 - **SMTP** — Simple Mail Transfer Protocol
 - **MTA** — Mail Transfer Agent (relays mail to other servers)
-- **DNS** — Domain Name **System**
+- **DNS** — Domain Name System
 - **MSA** — Mail Submission Agent (accepts mail from clients)
 - **MDA** — Mail Delivery Agent (places mail into a mailbox)
 - **SSL** — Secure Sockets Layer (legacy)
@@ -25,7 +25,7 @@ order: 1
 
 ## How does it work?
 
-SMTP defines how email is handed off from a client or server to the **next** server.
+SMTP defines how email is handed off from a client or server to the next server.
 
 1. A user’s email client connects to an **MSA** to submit a message.
 2. The **MTA** inspects the recipient’s domain (e.g., `user@example.com`).
@@ -49,13 +49,13 @@ client → MSA → MTA (sender) → MTA (recipient) → MDA → mailbox → IMAP
 
 ## Ports SMTP uses
 
-- **25** — Primary **server-to-server** transport. Often blocked on residential/enterprise egress to prevent abuse.
-- **587** — **Message submission** for clients. Use **STARTTLS** and authentication.
-- **465** — **Implicit TLS** (SMTPS). Common in the wild; some providers require/offer it.
+- **25** — Primary server-to-server transport. Often blocked on residential/enterprise egress to prevent abuse.
+- **587** — Message submission for clients. Use **STARTTLS** and authentication.
+- **465** — Implicit TLS (SMTPS). Common in the wild; some providers require/offer it.
 - **2525** — Non-standard, but many providers support it as an alternative when 25/587 are blocked.
 
 > Note: SSL is deprecated; use **TLS**. Prefer authenticated submission on **587** with STARTTLS when available.
 
 ## SMTP vs. IMAP/POP
 
-SMTP moves messages **between servers** (and from client → server). To **read** mail, clients connect to the mailbox using **IMAP** (synchronizes folders, supports multiple devices) or **POP** (downloads, typically simpler/one-device workflows).
+SMTP moves messages between servers (and from client → server). To read mail, clients connect to the mailbox using **IMAP** (synchronizes folders, supports multiple devices) or **POP** (downloads, typically simpler/one-device workflows).
