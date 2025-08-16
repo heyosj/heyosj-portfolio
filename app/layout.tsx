@@ -4,8 +4,8 @@ import ThemeToggle from "@/components/ThemeToggle"; // ⬅️ Add this import
 import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
-  title: { default: "heyOSJ: Dispatch", template: "%s · heyOSJ: Dispatch" },
-  description: "Short, useful security essays and notes.",
+  title: { default: "heyosj", template: "%s | heyosj" },
+  description: "short, useful security essays and notes.",
   alternates: { types: { "application/rss+xml": "/rss.xml" } },
 };
 
