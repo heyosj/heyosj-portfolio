@@ -12,7 +12,6 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <Analytics />
       <body className="bg-paper text-ink dark:bg-paper-dark dark:text-ink-dark">
         <div id="progress" />
         <div className="mx-auto max-w-3xl px-5">
@@ -21,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               OSJ Dispatch
             </Link>
             <nav className="flex items-center gap-4 text-sm">
-              <Link href="/blog" className="hover:underline">
+              <Link href="/dispatch/archive" className="hover:underline">
                 Archive
               </Link>
               <Link href="/about" className="hover:underline">
@@ -47,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           })();`,
           }}
         />
+        <Analytics />
       </body>
     </html>
   );

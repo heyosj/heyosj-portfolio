@@ -345,7 +345,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
       {/* Quiet footer row */}
       <hr className="border-border dark:border-border-dark" />
       <nav className="flex items-center justify-between text-sm pt-2">
-        <Link href="/dispatch" className="underline">
+        <Link href="/dispatch/archive" className="underline">
           ← Back to archive
         </Link>
         <a
