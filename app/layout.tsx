@@ -17,14 +17,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="mx-auto max-w-3xl px-5">
           <header className="py-6 flex items-center justify-between">
             <Link href="/" className="font-semibold tracking-tight">
-              OSJ Dispatch
+              dispatch | heyosj
             </Link>
             <nav className="flex items-center gap-4 text-sm">
               <Link href="/dispatch/archive" className="hover:underline">
-                Archive
+                archive
               </Link>
               <Link href="/about" className="hover:underline">
-                About
+                about
               </Link>
               <ThemeToggle /> {/* ⬅️ Toggle button added here */}
             </nav>

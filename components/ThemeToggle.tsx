@@ -34,7 +34,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="p-2 rounded bg-card dark:bg-card-dark text-ink dark:text-ink-dark"
     >
-      {dark ? "☀️ Light" : "🌙 Dark"}
+      {dark ? "☀️ light" : "🌙 dark"}
     </button>
   );
 }
