@@ -73,7 +73,7 @@ export async function generateMetadata(
   const post = await getPostBySlug(params.slug);
   if (!post) return {};
   const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.heyosj.com").replace(/\/$/, "");
-  const url = `${base}/blog/${post.slug}`;
+  const url = `${base}/dispatch/${post.slug}`;
   const title = `${post.title} – heyosj`;
   const description = post.description || "Security notes, simply said.";
 
@@ -154,7 +154,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
   // -------- JSON-LD Article schema --------
   const base =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.heyosj.com";
-  const url = `${base}/blog/${post.slug}`;
+  const url = `${base}/dispatch/${post.slug}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -186,7 +186,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
             {tags.map((t) => (
               <Link
                 key={t}
-                href={`/tags/${encodeURIComponent(t)}`}
+                href={`/dispatch/tags/${encodeURIComponent(t)}`}
                 className="text-[11px] px-2.5 py-0.5 rounded-full
                            border border-border dark:border-border-dark
                            bg-card dark:bg-card-dark
@@ -251,7 +251,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
                 <span className="opacity-75">— Step {seriesIndex} of {seriesTotal}</span>
               </div>
               <Link
-                href="/tags/email%20security"
+                href="/dispatch/tags/email%20security"
                 className="underline underline-offset-2 hover:decoration-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
               >
                 View the full series →
@@ -289,7 +289,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
             <ul className="grid gap-3">
               {related.map((r) => (
                 <li key={r.slug} className="text-sm">
-                  <Link href={`/blog/${r.slug}`} className="underline">
+                  <Link href={`/dispatch/${r.slug}`} className="underline">
                     {r.title}
                   </Link>
                   {r.description && (
@@ -318,7 +318,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
                 <div className="text-[11px] opacity-60 mb-1">
                   {isSeries ? "Previous in series" : "Previous"}
                 </div>
-                <Link href={`/blog/${prev.slug}`} className="underline">
+                <Link href={`/dispatch/${prev.slug}`} className="underline">
                   ← {prev.title}
                 </Link>
               </div>
@@ -331,7 +331,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
                 <div className="text-[11px] opacity-60 mb-1">
                   {isSeries ? "Next in series" : "Next"}
                 </div>
-                <Link href={`/blog/${next.slug}`} className="underline">
+                <Link href={`/dispatch/${next.slug}`} className="underline">
                   {next.title} →
                 </Link>
               </div>
@@ -345,7 +345,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
       {/* Quiet footer row */}
       <hr className="border-border dark:border-border-dark" />
       <nav className="flex items-center justify-between text-sm pt-2">
-        <Link href="/blog" className="underline">
+        <Link href="/dispatch" className="underline">
           ← Back to archive
         </Link>
         <a

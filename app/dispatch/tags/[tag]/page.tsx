@@ -1,4 +1,4 @@
-// app/tags/[tag]/page.tsx
+// app/dispatch/tags/[tag]/page.tsx
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPostsByTag } from "@/lib/posts";
@@ -33,7 +33,7 @@ export default async function TagPage({ params }: { params: { tag: string } }) {
               <div className="text-xs opacity-60 mb-1">Step {p.order}</div>
             )}
 
-            <Link href={`/blog/${p.slug}`} className="text-lg font-medium underline">
+            <Link href={`/dispatch/${p.slug}`} className="text-lg font-medium underline">
               {p.title}
             </Link>
 
@@ -43,7 +43,7 @@ export default async function TagPage({ params }: { params: { tag: string } }) {
 
             <div className="mt-3 flex flex-wrap gap-2 text-xs opacity-70">
               {p.tags.map((t) => (
-                <Link key={t} href={`/tags/${encodeURIComponent(t)}`} className="underline">
+                <Link key={t} href={`dispatch/tags/${encodeURIComponent(t)}`} className="underline">
                   #{t}
                 </Link>
               ))}
@@ -53,7 +53,7 @@ export default async function TagPage({ params }: { params: { tag: string } }) {
       </ul>
 
       <nav className="pt-6">
-        <Link href="/blog" className="underline">← Back to archive</Link>
+        <Link href="/dispatch" className="underline">← Back to archive</Link>
       </nav>
     </main>
   );
