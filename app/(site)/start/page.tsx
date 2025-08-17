@@ -62,7 +62,7 @@ export default async function StartPage() {
             title={play.title}
             desc="dns-only audit cli for spf/dmarc/mta-sts/tls-rpt — fast baseline in ~60s."
             href={play.url}
-            cta="try it"
+            cta="try"
             chips={[
               isNew(play.date) ? "new" : undefined,
               "dns-only",
