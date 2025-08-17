@@ -27,18 +27,22 @@ const Frontmatter = z.object({
     if (typeof v === "string") return v;
     return String(v);
   }, z.string()),
-  // optional manual override for "updated"; otherwise we'll use file mtime
+  // optional manual override for "updated" (no more mtime fallback)
   updated: z.preprocess((v) => {
     if (v == null) return undefined;
     if (v instanceof Date) return v.toISOString().slice(0, 10);
     if (typeof v === "string") return v;
     return String(v);
   }, z.string().optional()),
+  // show/hide updated everywhere (header, JSON-LD, OpenGraph)
+  updatedPublic: z.coerce.boolean().optional().default(true),
   description: z.string().optional().default(""),
   tags: z.array(z.string()).optional().default([]),
   slug: Slug.optional(),
   order: z.coerce.number().optional().default(999),
-  pinned: z.coerce.boolean().optional().default(false), // NEW
+  pinned: z.coerce.boolean().optional().default(false),
+  // optional little label above the H1 (e.g., "Investigation" for OSINT labs)
+  eyebrow: z.string().optional(),
 });
 
 function slugifyFilename(file: string) {
@@ -63,14 +67,16 @@ async function markdownToHtml(markdown: string): Promise<string> {
 export type Post = {
   title: string;
   date: string;
-  updated: string;
+  updated?: string;          // now optional
+  updatedPublic?: boolean;   // optional toggle
   description: string;
   tags: string[];
   slug: string;
   readingTime: string;
   html: string;
   order: number;
-  pinned: boolean; // NEW
+  pinned: boolean;
+  eyebrow?: string;          // optional eyebrow label
 };
 
 export async function getAllPosts(): Promise<Post[]> {
@@ -90,11 +96,25 @@ export async function getAllPosts(): Promise<Post[]> {
     const rt = readingTime(content).text;
     const compiled = await markdownToHtml(content);
 
-    // updated: frontmatter override OR file mtime
-    const stat = fs.statSync(fullPath);
-    const updated = fm.updated ?? stat.mtime.toISOString().slice(0, 10);
+    // Only keep `updated` if provided AND after publish date
+    const updatedValid =
+      fm.updated && new Date(fm.updated) > new Date(fm.date) ? fm.updated : undefined;
 
-    posts.push({ ...fm, slug, readingTime: rt, html: compiled, updated });
+    const post: Post = {
+      title: fm.title,
+      date: fm.date,
+      description: fm.description,
+      tags: fm.tags,
+      slug,
+      readingTime: rt,
+      html: compiled,
+      order: fm.order,
+      pinned: fm.pinned,
+      eyebrow: fm.eyebrow,
+      ...(updatedValid ? { updated: updatedValid, updatedPublic: fm.updatedPublic } : {}),
+    };
+
+    posts.push(post);
   }
 
   // Sort by order first, then by date (descending)

@@ -79,7 +79,10 @@ export async function generateMetadata(
 
   const updatedStr = (post as any).updated as string | undefined;
   const updatedPublic = (post as any).updatedPublic as boolean | undefined;
-  const useModified = !!updatedStr && (updatedPublic ?? true) && updatedStr !== post.date;
+  const useModified =
+    !!updatedStr &&
+    new Date(updatedStr) > new Date(post.date) &&
+    (updatedPublic ?? true);
 
   return {
     title,
@@ -155,17 +158,14 @@ export default async function PostPage({ params }: { params: { slug: string } })
   if (next) exclude.add(next.slug);
   related = related.filter((r) => !exclude.has(r.slug));
 
-  // -------- Updated date visibility (opt-in) --------
+  // -------- Updated date visibility (minimal + correct) --------
   const updatedStr = (post as any).updated as string | undefined;
   const updatedPublic = (post as any).updatedPublic as boolean | undefined;
-  const updatedDate = updatedStr ? new Date(updatedStr) : null;
-
-  // only show if explicitly provided AND visible AND different than publish date
   const showUpdated =
-    !!updatedDate &&
-    (updatedPublic ?? true) &&
-    updatedStr !== post.date;
-  // ----------------------------------------
+    !!updatedStr &&
+    new Date(updatedStr) > new Date(post.date) &&
+    (updatedPublic ?? true);
+  // -------------------------------------------------------------
 
   // -------- JSON-LD Article schema --------
   const base =
@@ -180,9 +180,12 @@ export default async function PostPage({ params }: { params: { slug: string } })
     keywords: post.tags?.join(", "),
     datePublished: post.date,
     url,
+    ...(showUpdated ? { dateModified: updatedStr } : {}),
   };
-  if (showUpdated) jsonLd.dateModified = updatedDate!.toISOString();
   // ----------------------------------------
+
+  // Optional eyebrow label (e.g., "Investigation" for OSINT labs)
+  const eyebrow = (post as any).eyebrow as string | undefined;
 
   return (
     <article className="space-y-6" id="top">
@@ -194,6 +197,11 @@ export default async function PostPage({ params }: { params: { slug: string } })
 
       {/* Header */}
       <header className="space-y-2">
+        {eyebrow && (
+          <div className="text-[11px] uppercase tracking-wide opacity-60">
+            {eyebrow}
+          </div>
+        )}
         <h1 className="text-3xl font-serif leading-tight">{post.title}</h1>
 
         {/* Tags (link to /tags/[tag]) */}
@@ -220,7 +228,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
         <p className="text-lg muted">{post.description}</p>
         <p className="text-sm muted">
           {new Date(post.date).toLocaleDateString()}
-          {showUpdated && <> • Updated {updatedDate!.toLocaleDateString()}</>}
+          {showUpdated && <> • Updated {new Date(updatedStr!).toLocaleDateString()}</>}
           {" • "}
           {post.readingTime}
         </p>
