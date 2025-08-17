@@ -18,6 +18,7 @@ export type LabFrontmatter = {
   order?: number;
   published?: boolean;
   type?: "lab";
+  pinned?: boolean;         // NEW
 };
 
 export type LabListItem = {
@@ -28,6 +29,7 @@ export type LabListItem = {
   summary: string;
   tags: string[];
   published: boolean;
+  pinned: boolean;          // NEW
 };
 
 export type LabDoc = {
@@ -103,6 +105,7 @@ export async function getAllLabs(): Promise<LabListItem[]> {
       summary: fm.summary ?? fm.description ?? "",
       tags: fm.tags ?? [],
       published,
+      pinned: fm.pinned ?? false,
     };
   });
 
@@ -166,4 +169,12 @@ export async function getLabBySlug(slug: string): Promise<LabDoc | null> {
   };
 
   return { slug, frontmatter, mdx, meta };
+}
+
+// NEW: pinned helper
+export async function getPinnedLabs(limit = 1) {
+  const all = await getAllLabs();
+  const pinned = all.filter(l => l.pinned);
+  const source = pinned.length ? pinned : all;
+  return source.slice(0, limit);
 }

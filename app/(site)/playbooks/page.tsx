@@ -1,79 +1,79 @@
 // app/(site)/playbooks/page.tsx
-import { getPlaybooksMeta } from '@/lib/playbooks';
-import Link from 'next/link';
-import type { Metadata } from 'next';
+import Link from "next/link";
+import { getPlaybooksMeta, type PlaybookMeta } from "@/lib/playbooks";
 
-export const metadata: Metadata = {
-  title: 'playbooks | heyosj',
-  description:
-    'Short, vendor-agnostic implementation notes you can roll out quickly.',
-  openGraph: {
-    title: 'playbooks | heyosj',
-    description:
-      'Short, vendor-agnostic implementation notes you can roll out quickly.',
-    type: 'website',
-    url: '/playbooks',
-  },
-};
+export const metadata = { title: "playbooks" };
 
-function Pill({ children }: { children: React.ReactNode }) {
+export default async function PlaybooksPage() {
+  const items = await getPlaybooksMeta();
+  const latest = items[0];
+
   return (
-    <span
-      className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--card)]/70 px-2.5 py-0.5 text-xs"
-      // keep them “quiet”
-      style={{ pointerEvents: 'none' }}
-    >
+    <section className="space-y-6">
+      {/* hero — identical structure to labs */}
+      <header className="card p-6 md:p-7">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-3xl md:text-4xl leading-tight">scripts &amp; tools.</h1>
+            <p className="muted mt-2 max-w-prose">
+              when a problem repeats, i script it. when the script is useful, it lands here with
+              setup, commands, and troubleshooting.
+            </p>
+          </div>
+
+          {latest && (
+            <Link
+              href={latest.url}
+              className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm shrink-0"
+            >
+              open latest <span aria-hidden>→</span>
+            </Link>
+          )}
+        </div>
+      </header>
+
+      {/* list */}
+      <ol className="space-y-3">
+        {items.map((pb) => (
+          <li key={pb.slug}>
+            <PlaybookListItem meta={pb} />
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/* ---------- local ---------- */
+
+function Chip({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-2 py-[2px] text-[11px] leading-5">
       {children}
     </span>
   );
 }
 
-export default function PlaybooksPage() {
-  const items = getPlaybooksMeta(); // server-only
-
+function PlaybookListItem({ meta }: { meta: PlaybookMeta }) {
   return (
-    <section className="mx-auto max-w-3xl space-y-8">
-      {/* Hero / intro */}
-      <div className="card p-6 md:p-8">
-        <h1 className="text-4xl font-serif leading-tight">scripts & tools</h1>
-        <p className="muted mt-2">
-          i like building small scripts and utilities. these playbooks document the tools i’ve written and actually reuse.
-          when a problem repeats, i script it; when the script is useful, it lands here with setup, commands, and troubleshooting.
-        </p>
-        {/* <div className="mt-3 text-sm muted">
-          {items.length} playbook{items.length === 1 ? '' : 's'}
-        </div> */}
-      </div>
+    <Link href={meta.url} className="block group" aria-label={meta.title}>
+      <article className="rounded-xl border border-border bg-card p-5 shadow-sm group-hover:shadow-md transition">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="text-xl font-semibold tracking-tight">{meta.title}</h2>
+          <span className="text-xs muted whitespace-nowrap">
+            {new Date(meta.date).toLocaleDateString()}
+          </span>
+        </div>
 
-      {/* List */}
-      <ul className="space-y-4">
-        {items.map((p) => {
-          const primaryTag = p.tags?.[0] ?? null;
-          return (
-            <li key={p.slug} className="card p-4">
-              <div className="space-y-2">
-                <Link
-                  href={p.url}
-                  className="text-lg font-semibold hover:underline"
-                >
-                  {p.title}
-                </Link>
-                <p className="muted">{p.description}</p>
+        {meta.description && <p className="muted mt-1">{meta.description}</p>}
 
-                {/* meta row: date pill + (optional) single tag pill */}
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <Pill>{p.date}</Pill>
-                  {primaryTag && <Pill>{primaryTag}</Pill>}
-                </div>
-              </div>
-            </li>
-          );
-        })}
-
-        {!items.length && (
-          <li className="muted">no playbooks yet — check back soon.</li>
-        )}
-      </ul>
-    </section>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {meta.tags.map((t) => (
+            <Chip key={t}>{t}</Chip>
+          ))}
+          {meta.repo && <Chip>repo</Chip>}
+        </div>
+      </article>
+    </Link>
   );
 }

@@ -10,7 +10,6 @@ export default function DispatchSectionLayout({ children }: { children: React.Re
           </Link>
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/dispatch/archive" className="hover:underline">archive</Link>
-            <Link href="/about" className="hover:underline">about</Link>
           </nav>
         </div>
       </div>

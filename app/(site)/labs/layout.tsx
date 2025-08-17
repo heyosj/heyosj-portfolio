@@ -1,3 +1,4 @@
+// app/(site)/labs/layout.tsx
 import Link from "next/link";
 
 export default function LabsSectionLayout({ children }: { children: React.ReactNode }) {
@@ -8,9 +9,6 @@ export default function LabsSectionLayout({ children }: { children: React.ReactN
           <Link href="/labs" className="font-serif text-2xl hover:underline">
             labs
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
-            <Link href="/about" className="hover:underline">about</Link>
-          </nav>
         </div>
       </div>
 

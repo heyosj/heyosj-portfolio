@@ -1,4 +1,3 @@
-// app/(home)/layout.tsx  (or replace your current home layout)
 'use client';
 
 import Link from "next/link";
@@ -11,12 +10,19 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       attribute="class"
       defaultTheme="system"
       enableSystem
-      storageKey="theme"            // matches the cookie your RootLayout reads
+      storageKey="theme"
       disableTransitionOnChange
     >
-      <header className="py-6 flex items-center justify-between relative z-50 pointer-events-auto">
-        <Link href="/" className="font-semibold tracking-tight">heyosj</Link>
-        <div className="flex items-center gap-4 text-sm">
+      <header className="py-6">
+        <div className="mx-auto max-w-3xl px-5 flex items-center justify-between">
+          {/* left: brand | about */}
+          <div className="flex items-baseline gap-2">
+            <Link href="/" className="font-semibold tracking-tight">heyosj</Link>
+            <span aria-hidden className="mx-1 muted">|</span>
+            <Link href="/about" className="hover:underline">about</Link>
+          </div>
+
+          {/* right: theme toggle */}
           <ThemeToggle />
         </div>
       </header>

@@ -1,3 +1,4 @@
+// app/(site)/playbooks/layout.tsx
 import Link from "next/link";
 
 export default function PlaybooksSectionLayout({ children }: { children: React.ReactNode }) {
@@ -8,9 +9,7 @@ export default function PlaybooksSectionLayout({ children }: { children: React.R
           <Link href="/playbooks" className="font-serif text-2xl hover:underline">
             playbooks
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
-            <Link href="/about" className="hover:underline">about</Link>
-          </nav>
+          {/* keep this empty/right-clean; global header already has “about” */}
         </div>
       </div>
 

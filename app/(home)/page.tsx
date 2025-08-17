@@ -1,7 +1,6 @@
 // app/(home)/page.tsx
 import Link from "next/link";
-import MailLink from '@/components/MailLink';
-
+import MailLink from "@/components/MailLink";
 
 export const metadata = { title: "home" };
 
@@ -15,22 +14,26 @@ export default function Home() {
           incident response, i’m documenting what i study, test, and break so i keep growing and share
           along the way.
         </p>
+        <p className="muted mt-3 text-[13px]">
+          new here?{" "}
+          <Link href="/start" className="underline underline-offset-2 hover:no-underline">
+            the shortlist →
+          </Link>
+        </p>
       </div>
 
-      {/* stretch items so all cards are equal height */}
+      {/* section cards */}
       <div className="grid gap-4 md:grid-cols-3 items-stretch">
         <HomeCard
           href="/dispatch"
           title="dispatch"
           blurb="personal security notes. what i’m learning, breaking down, and making sense of."
         />
-
         <HomeCard
           href="/playbooks"
           title="playbooks"
           blurb="repeatable scripts and workflows, with the reasoning behind when to run them."
         />
-
         <HomeCard
           href="/labs"
           title="labs"
@@ -40,22 +43,42 @@ export default function Home() {
 
       <p className="muted">
         say hi: <MailLink />{" "}
-        • <a className="underline" href="https://www.linkedin.com/in/osanchezjr" target="_blank" rel="noopener noreferrer">linkedin</a>{" "}
-        • <a className="underline" href="https://x.com/heyosj" target="_blank" rel="noopener noreferrer">x</a>{" "}
-        • <a className="underline" href="https://github.com/heyosj" target="_blank" rel="noopener noreferrer">github</a>
+        •{" "}
+        <a
+          className="underline"
+          href="https://www.linkedin.com/in/osanchezjr"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          linkedin
+        </a>{" "}
+        •{" "}
+        <a className="underline" href="https://x.com/heyosj" target="_blank" rel="noopener noreferrer">
+          x
+        </a>{" "}
+        •{" "}
+        <a className="underline" href="https://github.com/heyosj" target="_blank" rel="noopener noreferrer">
+          github
+        </a>
       </p>
     </section>
   );
 }
 
-function HomeCard({ href, title, blurb }: { href: string; title: string; blurb: string }) {
+function HomeCard({
+  href,
+  title,
+  blurb,
+}: {
+  href: string;
+  title: string;
+  blurb: string;
+}) {
   return (
     <Link href={href} className="block h-full group" aria-label={`${title}: ${blurb}`}>
       <div className="card h-full rounded-2xl border p-5 md:p-6 transition hover:-translate-y-[1px] hover:shadow-sm flex flex-col">
         <h2 className="font-serif text-lg md:text-xl">{title}</h2>
         <p className="muted mt-2 text-sm">{blurb}</p>
-
-        {/* arrow pinned to bottom; aligns across all cards */}
         <span className="mt-auto inline-flex items-center gap-2 text-base" aria-hidden>
           <span className="translate-y-[1px] transition-transform group-hover:translate-x-0.5">→</span>
         </span>

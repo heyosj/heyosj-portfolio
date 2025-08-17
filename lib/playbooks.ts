@@ -14,6 +14,7 @@ export type PlaybookMeta = {
   order?: number;
   url: string;    // /playbooks/<slug>
   repo?: string;  // optional GitHub URL
+  pinned?: boolean; // NEW
 };
 
 export type Playbook = { meta: PlaybookMeta; content: string };
@@ -29,6 +30,7 @@ const FRONTMATTER = z.object({
   tags: z.array(z.string()).default([]),
   order: z.coerce.number().optional(),
   repo: z.string().url().optional(),
+  pinned: z.coerce.boolean().optional().default(false), // NEW
 });
 
 function kebab(s: string) {
@@ -59,6 +61,7 @@ function metaFromFile(filepath: string): PlaybookMeta {
     order: fm.order,
     url: `/playbooks/${slug}`,
     repo: fm.repo,
+    pinned: fm.pinned ?? false,
   };
 }
 
@@ -96,6 +99,7 @@ export function getPlaybook(slug: string): Playbook {
         order: fm.order,
         url: `/playbooks/${s}`,
         repo: fm.repo,
+        pinned: fm.pinned ?? false,
       },
       content,
     };
@@ -123,6 +127,7 @@ export function getPlaybook(slug: string): Playbook {
           order: fm?.order,
           url: `/playbooks/${s}`,
           repo: fm?.repo,
+          pinned: fm?.pinned ?? false,
         },
         content,
       };
@@ -130,4 +135,12 @@ export function getPlaybook(slug: string): Playbook {
   }
 
   throw new Error(`Playbook not found for slug "${slug}"`);
+}
+
+// NEW: pinned helpers
+export function getPinnedPlaybooks(limit = 1): PlaybookMeta[] {
+  const all = getPlaybooksMeta();
+  const pinned = all.filter(p => p.pinned);
+  const source = pinned.length ? pinned : all;
+  return source.slice(0, limit);
 }

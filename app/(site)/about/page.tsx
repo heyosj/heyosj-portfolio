@@ -1,29 +1,48 @@
+// app/(site)/about/page.tsx
 import Link from "next/link";
 import BackLink from "@/components/BackLink";
+import ActionChip from "@/components/ActionChip";
 
-export const metadata = { title: "About" };
+export const metadata = { title: "about" };
 
 export default function About() {
   return (
     <section className="space-y-8">
       <BackLink />
 
-      {/* Hero card */}
-      <div className="card">
-        <div className="text-3xl">👋</div>
-        <h1 className="mt-2 text-3xl font-serif leading-tight">hi — i’m OJ.</h1>
+      {/* hero card */}
+      <div className="card p-6 md:p-7">
+        {/* <div className="text-3xl">👋</div> */}
+        <h1 className="mt-2 text-3xl md:text-4xl font-serif leading-tight">hi — i’m oj.</h1>
         <p className="muted mt-2">
-          i write short, practical security notes to show how i learn, reason, and ship.
-          vendor-agnostic, focused on things you can actually roll out.
+          i write short, practical security notes to show how i learn, reason, and ship — vendor-agnostic and ready to run.
         </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link href="https://www.linkedin.com/in/osanchezjr" target="_blank" className="btn">linkedin</Link>
-          <Link href="https://x.com/heyosj" target="_blank" className="btn">x</Link>
-          <Link href="https://github.com/heyosj" target="_blank" className="btn">github</Link>
+
+        {/* quick facts (mirrors /start) */}
+        <dl className="mt-3 grid gap-y-1.5 [grid-template-columns:4.25rem_1fr] md:[grid-template-columns:5rem_1fr] text-[13px]">
+          <div className="contents">
+            <dt className="font-medium text-foreground">now:</dt>
+            <dd className="muted">security analyst @ mls • georgia tech grad student</dd>
+          </div>
+          <div className="contents">
+            <dt className="font-medium text-foreground">focus:</dt>
+            <dd className="muted">email &amp; cloud security • threat hunting</dd>
+          </div>
+          <div className="contents">
+            <dt className="font-medium text-foreground">what's here:</dt>
+            <dd className="muted">detections • examples • rationale</dd>
+          </div>
+        </dl>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <ActionChip href="mailto:me@heyosj.com">email</ActionChip>
+          <ActionChip href="https://www.linkedin.com/in/osanchezjr" external>linkedin</ActionChip>
+          <ActionChip href="https://x.com/heyosj" external>x</ActionChip>
+          <ActionChip href="https://github.com/heyosj" external>github</ActionChip>
         </div>
       </div>
 
-      {/* Body */}
+      {/* body */}
       <article
         className={[
           "prose prose-slate max-w-prose dark:prose-invert",
@@ -50,7 +69,7 @@ export default function About() {
         <ul>
           <li><strong>notes across domains.</strong> email security, cloud &amp; identity, detection engineering, incident response, and operational hygiene.</li>
           <li><strong>standalone posts, with optional paths.</strong> most notes work on their own; when a sequence helps, i group them into a loose series.</li>
-          <li><strong>practical artifacts.</strong> configs, checks, and tiny checklists you can drop into real work.</li>
+          <li><strong>practical artifacts.</strong> detections, runnable examples, and the rationale behind them.</li>
           <li><strong>tags to jump around.</strong> some tags (like “email security”) have a rough order if you’re starting fresh.</li>
         </ul>
 
@@ -94,6 +113,9 @@ export default function About() {
       </article>
 
       <div className="not-prose mt-2 text-xs opacity-70">
+        new here?{" "}
+        <Link href="/start" className="underline underline-offset-2">see the shortlist</Link>
+        .{" "}
         curious how this site works?{" "}
         <Link
           href="https://github.com/heyosj/heyosj-portfolio"
@@ -101,7 +123,7 @@ export default function About() {
           rel="noreferrer"
           className="underline underline-offset-2 decoration-accent hover:decoration-accent-600"
         >
-          see the code on GitHub
+          see the code on github
         </Link>
         .
       </div>

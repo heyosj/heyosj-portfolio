@@ -37,8 +37,8 @@ const Frontmatter = z.object({
   description: z.string().optional().default(""),
   tags: z.array(z.string()).optional().default([]),
   slug: Slug.optional(),
-  // allow number or string → number; default to 999
   order: z.coerce.number().optional().default(999),
+  pinned: z.coerce.boolean().optional().default(false), // NEW
 });
 
 function slugifyFilename(file: string) {
@@ -63,13 +63,14 @@ async function markdownToHtml(markdown: string): Promise<string> {
 export type Post = {
   title: string;
   date: string;
-  updated: string;       // NEW
+  updated: string;
   description: string;
   tags: string[];
   slug: string;
   readingTime: string;
   html: string;
   order: number;
+  pinned: boolean; // NEW
 };
 
 export async function getAllPosts(): Promise<Post[]> {
@@ -135,6 +136,14 @@ export async function getLatestPost() {
 export async function getRecentPosts(limit = 5) {
   const posts = await getAllPostsByDate();
   return posts.slice(0, limit);
+}
+
+// ---- Pinned (for Start) ----
+export async function getPinnedPosts(limit = 1) {
+  const posts = await getAllPostsByDate();
+  const pinned = posts.filter((p) => p.pinned);
+  const source = pinned.length ? pinned : posts;
+  return source.slice(0, limit);
 }
 
 // ---- Related posts ----

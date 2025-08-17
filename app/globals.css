@@ -130,3 +130,9 @@ a:hover { color: var(--accent-600); }
 }
 
 ::selection { background: var(--accent, #c77d54); color: #fff; }
+
+/* line-clamp helpers (no plugin needed) */
+.clamp-1,.clamp-2,.clamp-3{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.clamp-1{-webkit-line-clamp:1}
+.clamp-2{-webkit-line-clamp:2}
+.clamp-3{-webkit-line-clamp:3}
