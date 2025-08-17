@@ -3,7 +3,6 @@ import Link from "next/link";
 import { getPinnedPlaybooks } from "@/lib/playbooks";
 import { getPinnedPosts } from "@/lib/posts";
 import { getPinnedLabs } from "@/lib/labs";
-import CopyEmail from "@/components/CopyEmail";
 import MailLink from "@/components/MailLink";
 
 export const metadata = { title: "start" };
@@ -28,13 +27,13 @@ export default async function StartPage() {
   const lab = labs[0];
 
   return (
-    <section className="space-y-10 sm:space-y-6">
+    <section className="space-y-6">
       {/* identity — short + factual */}
       <header className="card p-5 md:p-6">
         <h1 className="font-serif text-3xl md:text-[34px] leading-snug">the shortlist</h1>
         <p className="muted mt-1 text-[13.5px]">three picks: one tool, one detection, one lab</p>
 
-        <dl className="mt-2 grid grid-cols-[5.5rem_1fr] md:grid-cols-[6rem_1fr] gap-y-1.5 text-[13px]">
+        <dl className="mt-2 grid grid-cols-[5.5rem_1fr] md:grid-cols-[6rem_1fr] gap-y-1 text-[13px]">
           <dt className="font-medium text-foreground">now:</dt>
           <dd className="muted">security analyst @ mls • georgia tech grad student</dd>
 
@@ -49,15 +48,15 @@ export default async function StartPage() {
       {/* floating terminal map */}
       <TerminalTree />
 
-      {/* cards */}
-      <section className="grid gap-8 md:grid-cols-2 xl:grid-cols-3 items-stretch">
+      {/* cards — no forced equal height */}
+      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 md:items-stretch">
         {play && (
           <Card
             eyebrow="playbook"
             title={play.title}
             desc="dns-only audit cli for spf/dmarc/mta-sts/tls-rpt — fast baseline in ~60s."
             href={play.url}
-            cta="try it"
+            cta="try"
             chips={[
               isNew(play.date) ? "new" : undefined,
               "dns-only",
@@ -96,36 +95,30 @@ export default async function StartPage() {
         )}
       </section>
 
-      {/* footer — more breathing room + better wrapping */}
-      <div className="muted mt-12 sm:mt-8 pt-6 border-t border-[var(--border)] space-y-3">
-        <p className="leading-relaxed">
+      {/* footer */}
+      <div className="muted mt-6 space-y-2">
+        <p>
           prefer the long way around? explore{" "}
           <Link className="underline" href="/dispatch">dispatch</Link>,{" "}
           <Link className="underline" href="/playbooks">playbooks</Link>, and{" "}
           <Link className="underline" href="/labs">labs</Link>.
         </p>
 
-        <p className="leading-relaxed">
-          <span className="mr-2">say hi:</span>
-          {/* wrap nicely on mobile */}
-          <span className="inline-flex flex-wrap items-center gap-3">
-            <MailLink />
-            <CopyEmail email="me@heyosj.com" />
-            <a
-              className="underline"
-              href="https://www.linkedin.com/in/osanchezjr"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="linkedin"
-            >
-              linkedin
-            </a>
-          </span>
+        <p className="flex flex-wrap items-center gap-2">
+          <span>say hi:</span>
+          <MailLink />
+          <span>•</span>
+          <a
+            className="underline"
+            href="https://www.linkedin.com/in/osanchezjr"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="linkedin"
+          >
+            linkedin
+          </a>
         </p>
       </div>
-
-      {/* keep space off the iOS home indicator */}
-      <div className="pb-[calc(env(safe-area-inset-bottom)+16px)]" />
     </section>
   );
 }
@@ -146,8 +139,9 @@ function TerminalTree() {
         <span className="h-2.5 w-2.5 rounded-full bg-green-500/80" />
         <span className="ml-2 text-[12px] font-mono muted">terminal</span>
       </div>
-      {/* body */}
-      <div className="px-4 py-3 font-mono text-[13.5px] md:text-sm leading-7 tracking-tight">
+
+      {/* body — extra vertical breathing room only */}
+      <div className="px-4 py-5 md:py-6 font-mono text-[13.5px] md:text-sm leading-7 tracking-tight">
         <div className="muted">$ tree -L 1</div>
         <div>
           <Link className="underline" href="/">heyosj</Link>
@@ -171,7 +165,7 @@ function TerminalTree() {
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-2 py-[2px] text-[11px] leading-5">
+    <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-1.5 py-[1px] text-[11px] leading-[18px]">
       {children}
     </span>
   );
@@ -188,17 +182,19 @@ function Card({
   chips?: string[];
 }) {
   return (
-    <Link href={href} className="block h-full group" aria-label={title}>
-      <article className="card h-full rounded-2xl border p-5 md:p-6 transition hover:-translate-y-[1px] hover:shadow-sm flex flex-col">
+    <Link href={href} className="block group" aria-label={title}>
+      <article
+        className="
+          card h-full rounded-2xl border p-5 md:p-6
+          flex flex-col
+          md:min-h-[260px] xl:min-h-[280px]
+          transition hover:-translate-y-[1px] hover:shadow-sm
+        "
+      >
         <span className="text-[11px] tracking-wide muted">{eyebrow.toLowerCase()}</span>
         <h2 className="font-serif text-lg md:text-xl mt-1 leading-snug clamp-2">{title}</h2>
 
-        {/* slightly calmer on phones */}
-        {desc && (
-          <p className="muted mt-2 hidden sm:block text-sm leading-relaxed clamp-2">
-            {desc}
-          </p>
-        )}
+        {desc && <p className="muted mt-1.5 text-sm clamp-2">{desc}</p>}
 
         {chips.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -208,7 +204,7 @@ function Card({
           </div>
         )}
 
-        {/* CTA: small, right-aligned, no divider */}
+        {/* pushes CTA to bottom */}
         <div className="mt-auto pt-3 flex justify-end">
           <span
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm

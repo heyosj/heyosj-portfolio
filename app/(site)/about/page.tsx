@@ -12,7 +12,6 @@ export default function About() {
 
       {/* hero card */}
       <div className="card p-6 md:p-7">
-        {/* <div className="text-3xl">👋</div> */}
         <h1 className="mt-2 text-3xl md:text-4xl font-serif leading-tight">hi — i’m oj.</h1>
         <p className="muted mt-2">
           i write short, practical security notes to show how i learn, reason, and ship — vendor-agnostic and ready to run.
@@ -34,6 +33,7 @@ export default function About() {
           </div>
         </dl>
 
+        {/* contact */}
         <div className="mt-4 flex flex-wrap gap-2">
           <ActionChip href="mailto:me@heyosj.com">email</ActionChip>
           <ActionChip href="https://www.linkedin.com/in/osanchezjr" external>linkedin</ActionChip>
@@ -112,21 +112,30 @@ export default function About() {
         </ul>
       </article>
 
-      <div className="not-prose mt-2 text-xs opacity-70">
-        new here?{" "}
-        <Link href="/start" className="underline underline-offset-2">see the shortlist</Link>
-        .{" "}
-        curious how this site works?{" "}
-        <Link
-          href="https://github.com/heyosj/heyosj-portfolio"
-          target="_blank"
-          rel="noreferrer"
-          className="underline underline-offset-2 decoration-accent hover:decoration-accent-600"
-        >
-          see the code on github
-        </Link>
-        .
-      </div>
+      {/* helpful links (spacious, non-cramped) */}
+      <section className="mt-2">
+        <div className="rounded-xl border bg-card p-4 md:p-5">
+          <ul className="text-sm leading-6 space-y-2">
+            <li>
+              new here?{" "}
+              <Link href="/start" className="underline underline-offset-2">
+                the shortlist →
+              </Link>
+            </li>
+            <li>
+              curious how this site works?{" "}
+              <a
+                href="https://github.com/heyosj/heyosj-portfolio"
+                target="_blank"
+                rel="noreferrer"
+                className="underline underline-offset-2"
+              >
+                source on github ↗
+              </a>
+            </li>
+          </ul>
+        </div>
+      </section>
     </section>
   );
 }
