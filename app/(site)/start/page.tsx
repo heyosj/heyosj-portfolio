@@ -11,8 +11,8 @@ export const metadata = { title: "start" };
 // --- helpers ---
 const isNew = (iso?: string, days = 14) => {
   if (!iso) return false;
-  const t = new Date(iso).getTime();
-  return Number.isFinite(t) && (Date.now() - t) / 86400000 < days;
+  const dt = new Date(iso).getTime();
+  return Number.isFinite(dt) && (Date.now() - dt) / 86400000 < days;
 };
 const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleDateString() : "");
 
@@ -28,41 +28,36 @@ export default async function StartPage() {
   const lab = labs[0];
 
   return (
-    <section className="space-y-6">
+    <section className="space-y-10 sm:space-y-6">
       {/* identity — short + factual */}
-      <header className="card p-6 md:p-7">
+      <header className="card p-5 md:p-6">
         <h1 className="font-serif text-3xl md:text-[34px] leading-snug">the shortlist</h1>
-        <p className="muted mt-1 text-[13.5px]">three picks: one tool, one detection, one lab.</p>
+        <p className="muted mt-1 text-[13.5px]">three picks: one tool, one detection, one lab</p>
 
-        {/* tidy, aligned meta rows */}
-        <dl className="mt-3 grid gap-y-1.5 [grid-template-columns:4.75rem_1fr] md:[grid-template-columns:5.25rem_1fr] text-[13px]">
-          <div className="contents">
-            <dt className="font-medium text-foreground">now:</dt>
-            <dd className="muted">security analyst @ mls • georgia tech grad student</dd>
-          </div>
-          <div className="contents">
-            <dt className="font-medium text-foreground">focus:</dt>
-            <dd className="muted">email &amp; cloud security, threat hunting</dd>
-          </div>
-          <div className="contents">
-            <dt className="font-medium text-foreground">what's here:</dt>
-            <dd className="muted">detections • examples • rationale</dd>
-          </div>
+        <dl className="mt-2 grid grid-cols-[5.5rem_1fr] md:grid-cols-[6rem_1fr] gap-y-1.5 text-[13px]">
+          <dt className="font-medium text-foreground">now:</dt>
+          <dd className="muted">security analyst @ mls • georgia tech grad student</dd>
+
+          <dt className="font-medium text-foreground">focus:</dt>
+          <dd className="muted">email &amp; cloud security, threat hunting</dd>
+
+          <dt className="font-medium text-foreground">output:</dt>
+          <dd className="muted">detections • examples • rationale</dd>
         </dl>
       </header>
 
-      {/* floating terminal map — a touch narrower so it feels intentional */}
+      {/* floating terminal map */}
       <TerminalTree />
 
       {/* cards */}
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 items-stretch">
+      <section className="grid gap-8 md:grid-cols-2 xl:grid-cols-3 items-stretch">
         {play && (
           <Card
             eyebrow="playbook"
             title={play.title}
             desc="dns-only audit cli for spf/dmarc/mta-sts/tls-rpt — fast baseline in ~60s."
             href={play.url}
-            cta="try"
+            cta="try it"
             chips={[
               isNew(play.date) ? "new" : undefined,
               "dns-only",
@@ -93,35 +88,44 @@ export default async function StartPage() {
             desc={lab.summary || "end-to-end walkthrough with artifacts; pii redacted."}
             href={`/labs/${lab.slug}`}
             cta="open"
-            chips={[isNew(lab.date) ? "new" : undefined, fmt(lab.date)].filter(Boolean) as string[]}
+            chips={[
+              isNew(lab.date) ? "new" : undefined,
+              `${fmt(lab.date)}`,
+            ].filter(Boolean) as string[]}
           />
         )}
       </section>
 
-      {/* footer — centered on xs, left-aligned from sm+; includes working copy chip */}
-      <div className="muted mt-6 space-y-2 text-center sm:text-left">
-        <p>
+      {/* footer — more breathing room + better wrapping */}
+      <div className="muted mt-12 sm:mt-8 pt-6 border-t border-[var(--border)] space-y-3">
+        <p className="leading-relaxed">
           prefer the long way around? explore{" "}
           <Link className="underline" href="/dispatch">dispatch</Link>,{" "}
           <Link className="underline" href="/playbooks">playbooks</Link>, and{" "}
           <Link className="underline" href="/labs">labs</Link>.
         </p>
 
-        <p className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
-          <span>say hi:</span>
-          <MailLink />
-          <CopyEmail email="me@heyosj.com" />
-          <span>•</span>
-          <a
-            className="underline"
-            href="https://www.linkedin.com/in/osanchezjr"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            linkedin
-          </a>
+        <p className="leading-relaxed">
+          <span className="mr-2">say hi:</span>
+          {/* wrap nicely on mobile */}
+          <span className="inline-flex flex-wrap items-center gap-3">
+            <MailLink />
+            <CopyEmail email="me@heyosj.com" />
+            <a
+              className="underline"
+              href="https://www.linkedin.com/in/osanchezjr"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="linkedin"
+            >
+              linkedin
+            </a>
+          </span>
         </p>
       </div>
+
+      {/* keep space off the iOS home indicator */}
+      <div className="pb-[calc(env(safe-area-inset-bottom)+16px)]" />
     </section>
   );
 }
@@ -132,7 +136,7 @@ function TerminalTree() {
   return (
     <nav
       aria-label="site map"
-      className="mx-auto w-full max-w-lg rounded-xl border bg-card overflow-hidden
+      className="mx-auto w-full max-w-xl rounded-xl border bg-card overflow-hidden
                  shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:shadow-black/30"
     >
       {/* window header */}
@@ -150,11 +154,11 @@ function TerminalTree() {
         </div>
         <div className="pl-4">
           ├── <Link className="underline" href="/dispatch">dispatch</Link>
-          <span className="muted"> — notes &amp; breakdowns</span>
+          <span className="muted"> — notes & breakdowns</span>
         </div>
         <div className="pl-4">
           ├── <Link className="underline" href="/playbooks">playbooks</Link>
-          <span className="muted"> — scripts &amp; runbooks</span>
+          <span className="muted"> — scripts & runbooks</span>
         </div>
         <div className="pl-4">
           └── <Link className="underline" href="/labs">labs</Link>
@@ -189,7 +193,12 @@ function Card({
         <span className="text-[11px] tracking-wide muted">{eyebrow.toLowerCase()}</span>
         <h2 className="font-serif text-lg md:text-xl mt-1 leading-snug clamp-2">{title}</h2>
 
-        {desc && <p className="muted mt-2 text-sm clamp-2">{desc}</p>}
+        {/* slightly calmer on phones */}
+        {desc && (
+          <p className="muted mt-2 hidden sm:block text-sm leading-relaxed clamp-2">
+            {desc}
+          </p>
+        )}
 
         {chips.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
