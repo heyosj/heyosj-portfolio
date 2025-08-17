@@ -77,6 +77,10 @@ export async function generateMetadata(
   const title = `${post.title} – heyosj`;
   const description = post.description || "Security notes, simply said.";
 
+  const updatedStr = (post as any).updated as string | undefined;
+  const updatedPublic = (post as any).updatedPublic as boolean | undefined;
+  const useModified = !!updatedStr && (updatedPublic ?? true) && updatedStr !== post.date;
+
   return {
     title,
     description,
@@ -88,7 +92,7 @@ export async function generateMetadata(
       description,
       tags: post.tags,
       publishedTime: post.date,
-      modifiedTime: (post as any).updated || post.date,
+      ...(useModified ? { modifiedTime: updatedStr } : {}),
       siteName: "heyosj",
     },
     twitter: {
@@ -151,11 +155,23 @@ export default async function PostPage({ params }: { params: { slug: string } })
   if (next) exclude.add(next.slug);
   related = related.filter((r) => !exclude.has(r.slug));
 
+  // -------- Updated date visibility (opt-in) --------
+  const updatedStr = (post as any).updated as string | undefined;
+  const updatedPublic = (post as any).updatedPublic as boolean | undefined;
+  const updatedDate = updatedStr ? new Date(updatedStr) : null;
+
+  // only show if explicitly provided AND visible AND different than publish date
+  const showUpdated =
+    !!updatedDate &&
+    (updatedPublic ?? true) &&
+    updatedStr !== post.date;
+  // ----------------------------------------
+
   // -------- JSON-LD Article schema --------
   const base =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.heyosj.com";
   const url = `${base}/dispatch/${post.slug}`;
-  const jsonLd = {
+  const jsonLd: Record<string, any> = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
@@ -163,9 +179,9 @@ export default async function PostPage({ params }: { params: { slug: string } })
     author: { "@type": "Person", name: "O. Sanchez Jr." },
     keywords: post.tags?.join(", "),
     datePublished: post.date,
-    dateModified: (post as any).updated || post.date,
     url,
   };
+  if (showUpdated) jsonLd.dateModified = updatedDate!.toISOString();
   // ----------------------------------------
 
   return (
@@ -204,9 +220,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
         <p className="text-lg muted">{post.description}</p>
         <p className="text-sm muted">
           {new Date(post.date).toLocaleDateString()}
-          {(post as any).updated && (post as any).updated !== post.date && (
-            <> • Updated {new Date((post as any).updated).toLocaleDateString()}</>
-          )}
+          {showUpdated && <> • Updated {updatedDate!.toLocaleDateString()}</>}
           {" • "}
           {post.readingTime}
         </p>
