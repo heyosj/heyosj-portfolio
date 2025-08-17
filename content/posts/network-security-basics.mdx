@@ -1,0 +1,68 @@
+---
+title: "Network Security: Foundations for SecOps"
+description: "Practical notes on segmentation, VPNs, proxies, OSI/TCP/IP, and why they matter in SecOps."
+date: "2025-08-17"
+slug: "network-security"
+tags: ["networking", "security", "secops", "reference"]
+eyebrow: "Reference"
+---
+
+## Why networking matters
+
+- **Security Architecture & Engineering** — You design secure networks using segmentation, firewalls, DMZs, IDS/IPS, and more.
+- **Security Operations (SecOps)** — Deep networking helps with packet analysis, incident response, forensics, and pentesting. Know OSI layers, TCP/IP, DHCP, DNS, ARP, and how traffic actually flows.
+
+## Basics
+
+- **Web servers belong in a DMZ.** They’re reachable from the internet, so isolate them from internal assets and place controls between tiers.
+- **Workstations should be on their own VLAN/subnet** and ideally have host-based firewall rules preventing lateral WS-to-WS traffic. Same flat segment as servers increases spoofing/MitM risk.
+- **Switches/routers on an “admin network.”** Keeps users from snooping or tampering with infra plane traffic.
+- **IP phones on a voice VLAN.** Avoid letting PCs eavesdrop.
+- **Printers on their own segment.** They see sensitive docs and can trigger NTLM auth, which attackers can relay—also handy persistence spots.
+
+> 💡 **Remote-first reality check:** If your apps live in cloud VPCs, the same patterns apply: public subnets (DMZ) for ingress, private subnets for app/data, and tightly scoped security groups/NACLs. Ask: *Is our “web tier” actually isolated?* 
+
+## Network access: VPNs
+
+**Remote Access VPN** creates a virtual interface on the client to reach internal networks. Route design matters:
+
+- **Split tunnel** — Only specific routes (e.g., `10.10.10.0/24`) go through the VPN; everything else uses the local internet. Good for user privacy and bandwidth, **but** malware on the host can bypass network-based detections for non-tunneled traffic.
+
+> 💡 With split tunneling, corp traffic is protected, personal traffic isn’t—an infected machine can still reach company subnets once connected.
+
+## Proxies (L7 middleboxes)
+
+A **proxy** mediates traffic and can inspect content (Layer 7). Without mediation/inspection it’s a **gateway**, not a proxy. VPNs ≠ proxies. 
+
+- **Forward proxy** — Client asks the proxy to fetch outbound content.
+- **Reverse proxy** — Fronts services and filters inbound requests; common place for **WAFs** to block malicious HTTP traffic. 
+
+## Models: OSI vs. TCP/IP
+
+- **OSI (7 layers)** — Conceptual reference for describing communication responsibilities.
+- **TCP/IP (Internet Protocol Suite)** — Practical stack used on the internet. Think 4 layers that roughly map to OSI’s 7. In practice, you’ll speak in TCP/IP terms but use OSI for reasoning/teaching. 
+
+## Packet flow & PDUs
+
+Each layer wraps the data from the layer above in its own **header** (encapsulation). The receiver removes them in reverse (decapsulation). We call those per-layer units **Protocol Data Units (PDUs)**. 
+
+## IP addressing (quick hits)
+
+- **IPv4/IPv6** — Unique logical address for the host (like a street address).
+- **MAC** — Link-layer hardware address (like the apartment number).
+
+## Network segmentation & subnet masks
+
+> 💡 Seeing `10.0.0.0/8` or other **very large** CIDRs often hints at weak segmentation. Prefer smaller subnets (e.g., `/24`) to limit lateral movement and blast radius.
+
+**Subnet Masking Summary**
+
+1. **What it does** — Splits an IP into **network** and **host** portions.
+2. **Formats** — Dotted decimal `255.255.255.0` and CIDR `/24`.
+3. **How it works** — `192.168.1.0/24` yields 256 addresses; `.0` is the network ID, `.255` broadcast.
+4. **Key insight** — Larger subnets (`/8`, `/16`) mean more hosts on one segment → broader attack surface. Smaller subnets (`/24`) improve containment.
+5. **Why SecOps cares** — Alerts tied to huge subnets may reflect misconfiguration; investigate re-segmentation to reduce risk.
+
+### Subnetting
+
+Splitting a larger address range into smaller ranges to control scope, performance, and security.
