@@ -28,7 +28,7 @@ export default function About() {
             <dd className="muted">email &amp; cloud security • threat hunting</dd>
           </div>
           <div className="contents">
-            <dt className="font-medium text-foreground">what's here:</dt>
+            <dt className="font-medium text-foreground">overview:</dt>
             <dd className="muted">detections • examples • rationale</dd>
           </div>
         </dl>

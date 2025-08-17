@@ -40,7 +40,7 @@ export default async function StartPage() {
           <dt className="font-medium text-foreground">focus:</dt>
           <dd className="muted">email &amp; cloud security, threat hunting</dd>
 
-          <dt className="font-medium text-foreground">output:</dt>
+          <dt className="font-medium text-foreground">overview:</dt>
           <dd className="muted">detections • examples • rationale</dd>
         </dl>
       </header>
