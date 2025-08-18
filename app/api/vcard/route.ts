@@ -17,7 +17,7 @@ export async function GET() {
   return new NextResponse(vcf, {
     headers: {
       "Content-Type": "text/vcard; charset=utf-8",
-      "Content-Disposition": 'attachment; filename="osanchezjr.vcf"',
+      "Content-Disposition": 'attachment; filename="heyosj.vcf"',
     },
   });
 }

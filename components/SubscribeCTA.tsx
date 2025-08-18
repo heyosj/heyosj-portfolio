@@ -8,7 +8,7 @@ export default function SubscribeCTA() {
         let’s talk security, tech, ideas or exchange notes.
       </p>
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Link href="https://www.linkedin.com/in/osanchezjr" target="_blank" className="btn">linkedin</Link>
+        <Link href="https://www.linkedin.com/in/heyosj" target="_blank" className="btn">linkedin</Link>
         <Link href="https://x.com/heyosj" target="_blank" className="btn">x</Link>
         <Link href="https://github.com/heyosj" target="_blank" className="btn">github</Link>
       </div>

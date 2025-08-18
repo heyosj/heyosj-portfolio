@@ -5,13 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useEffect, useState, useCallback } from "react";
 
-function sameOriginReferrer(): boolean {
-  try {
-    return !!document.referrer && new URL(document.referrer).origin === window.location.origin;
-  } catch {
-    return false;
-  }
-}
+const STACK_KEY = "__route_stack__"; // maintained by the inline script in layout
+const ANCHORS = new Set(["/start", "/dispatch", "/playbooks", "/labs"]);
 
 export default function BackLink({
   className,
@@ -26,19 +21,37 @@ export default function BackLink({
   const pathname = usePathname();
   const [shouldShow, setShouldShow] = useState(false);
 
-  // Recompute on each client-side route change
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const internal = sessionStorage.getItem("cameFromInternal") === "1";
-    const sameRef = sameOriginReferrer();
-    // Only show if we navigated inside the app OR we arrived from a same-origin page
-    setShouldShow(internal || sameRef);
+
+    let stack: string[] = [];
+    try {
+      stack = JSON.parse(sessionStorage.getItem(STACK_KEY) || "[]");
+    } catch {
+      stack = [];
+    }
+
+    const prev = stack.length >= 2 ? stack[stack.length - 2] : "";
+    const onAnchor = ANCHORS.has(pathname);
+    const hasHistory = stack.length > 1;
+
+    // Anchor pages:
+    //  - show if the immediate previous path was "/" (Home)
+    //  - OR if we returned from a child route within the same section
+    //    e.g., "/dispatch/slug" → "/dispatch"
+    const allowOnAnchor =
+      onAnchor && (prev === "/" || prev.startsWith(pathname + "/"));
+
+    // Non-anchor pages: show if there is in-app history
+    setShouldShow(allowOnAnchor || (!onAnchor && hasHistory));
   }, [pathname]);
 
   const onClick = useCallback(() => {
     if (typeof window === "undefined") return;
     const before = window.location.pathname;
     router.back();
+
+    // Fallback if history didn’t move (fresh entry)
     setTimeout(() => {
       if (window.location.pathname === before) {
         router.push(fallback);

@@ -28,7 +28,7 @@ export default function Home() {
       <p className="muted">
         say hi:
         {" "}
-        <Link className="underline" href="https://www.linkedin.com/in/osanchezjr" target="_blank">linkedin</Link>
+        <Link className="underline" href="https://www.linkedin.com/in/heyosj" target="_blank">linkedin</Link>
         {"  "}
         <Link className="underline" href="https://x.com/heyosj" target="_blank">x</Link>
         {"  "}

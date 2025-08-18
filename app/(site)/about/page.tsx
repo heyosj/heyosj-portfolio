@@ -34,7 +34,7 @@ export default function About() {
         {/* contact */}
         <div className="mt-4 flex flex-wrap gap-2">
           <ActionChip href="mailto:me@heyosj.com">email</ActionChip>
-          <ActionChip href="https://www.linkedin.com/in/osanchezjr" external>linkedin</ActionChip>
+          <ActionChip href="https://www.linkedin.com/in/heyosj" external>linkedin</ActionChip>
           <ActionChip href="https://x.com/heyosj" external>x</ActionChip>
           <ActionChip href="https://github.com/heyosj" external>github</ActionChip>
         </div>

@@ -46,7 +46,7 @@ export default function Home() {
         •{" "}
         <a
           className="underline"
-          href="https://www.linkedin.com/in/osanchezjr"
+          href="https://www.linkedin.com/in/heyosj"
           target="_blank"
           rel="noopener noreferrer"
         >
