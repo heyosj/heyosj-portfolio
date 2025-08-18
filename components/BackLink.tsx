@@ -1,12 +1,13 @@
+// components/BackLink.tsx
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
-function sameOrigin(ref: string) {
+function sameOriginReferrer(): boolean {
   try {
-    return new URL(ref).origin === window.location.origin;
+    return !!document.referrer && new URL(document.referrer).origin === window.location.origin;
   } catch {
     return false;
   }
@@ -16,30 +17,36 @@ export default function BackLink({
   className,
   children = "← back",
   fallback = "/start",
-  hideOn = ["/", "/start"], // don't show on home-like pages
 }: {
   className?: string;
   children?: React.ReactNode;
   fallback?: string;
-  hideOn?: string[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [canGoBack, setCanGoBack] = useState(false);
+  const [shouldShow, setShouldShow] = useState(false);
 
+  // Recompute on each client-side route change
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const hasHistory = window.history.length > 1;
-    const okRef = document.referrer && sameOrigin(document.referrer);
-    setCanGoBack(Boolean(hasHistory && okRef));
-  }, []);
+    const internal = sessionStorage.getItem("cameFromInternal") === "1";
+    const sameRef = sameOriginReferrer();
+    // Only show if we navigated inside the app OR we arrived from a same-origin page
+    setShouldShow(internal || sameRef);
+  }, [pathname]);
 
-  if (hideOn.includes(pathname)) return null;
+  const onClick = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const before = window.location.pathname;
+    router.back();
+    setTimeout(() => {
+      if (window.location.pathname === before) {
+        router.push(fallback);
+      }
+    }, 350);
+  }, [router, fallback]);
 
-  const onClick = () => {
-    if (canGoBack) router.back();
-    else router.push(fallback);
-  };
+  if (!shouldShow) return null;
 
   return (
     <button

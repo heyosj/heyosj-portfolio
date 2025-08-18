@@ -8,8 +8,6 @@ export const metadata = { title: "about" };
 export default function About() {
   return (
     <section className="space-y-8">
-      <BackLink />
-
       {/* hero card */}
       <div className="card p-6 md:p-7">
         <h1 className="mt-2 text-3xl md:text-4xl font-serif leading-tight">hi — i’m oj.</h1>

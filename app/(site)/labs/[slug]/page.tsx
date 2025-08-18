@@ -48,13 +48,13 @@ export default async function LabPage({ params }: { params: { slug: string } }) 
     <article className="mx-auto max-w-3xl space-y-6">
       {/* breadcrumb */}
       <nav aria-label="Breadcrumb" className="mb-1">
-        <Link
+        {/* <Link
           href="/labs"
           className="inline-flex items-center gap-1 text-sm muted hover:underline"
         >
           <span aria-hidden>←</span>
           <span>Back to labs</span>
-        </Link>
+        </Link> */}
       </nav>
 
       {/* HEADER CARD */}
