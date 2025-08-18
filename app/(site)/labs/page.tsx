@@ -1,11 +1,14 @@
 // app/(site)/labs/page.tsx
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
 import { getAllLabs } from "@/lib/labs";
 
 export const metadata = { title: "labs" };
 export const runtime = "nodejs";
+export const revalidate = 0; // ensure fresh read
 
 export default async function Labs() {
+  noStore();
   const items = await getAllLabs();
   const latest = items[0];
 
@@ -14,7 +17,7 @@ export default async function Labs() {
       <h1 className="sr-only">labs</h1>
 
       <header className="card p-6 md:p-7">
-        <div className="flex items-start justify-between gap-4">
+        <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-start md:gap-6">
           <div>
             <h2 className="font-serif leading-[1.15] text-3xl md:text-4xl">
               experiments, notes, research.
@@ -28,7 +31,14 @@ export default async function Labs() {
           {latest && (
             <Link
               href={`/labs/${latest.slug}`}
-              className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm shrink-0"
+              className="
+                inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--card)]
+                text-sm px-3 py-1.5
+                w-full justify-center mt-1
+                md:w-auto md:justify-normal md:mt-0
+              "
+              aria-label={`open latest: ${latest.title}`}
+              prefetch
             >
               open latest <span aria-hidden>→</span>
             </Link>
@@ -48,7 +58,7 @@ export default async function Labs() {
           {items.map((it) => (
             <li key={it.slug} className="card p-5">
               <h3 className="font-serif text-xl">
-                <Link href={`/labs/${it.slug}`} className="underline">
+                <Link href={`/labs/${it.slug}`} className="underline" prefetch>
                   {it.title}
                 </Link>
               </h3>

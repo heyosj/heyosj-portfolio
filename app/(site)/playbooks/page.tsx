@@ -21,9 +21,9 @@ export default async function PlaybooksPage() {
 
   return (
     <section className="space-y-6">
-      {/* hero — identical structure to labs */}
+      {/* hero — identical structure to labs, but responsive button */}
       <header className="card p-6 md:p-7">
-        <div className="flex items-start justify-between gap-4">
+        <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-start md:gap-6">
           <div>
             <h1 className="font-serif text-3xl md:text-4xl leading-tight">scripts &amp; tools.</h1>
             <p className="muted mt-2 max-w-prose">
@@ -35,7 +35,12 @@ export default async function PlaybooksPage() {
           {latest && (
             <Link
               href={latest.url ?? `/playbooks/${latest.slug}`}
-              className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm shrink-0"
+              className="
+                inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--card)]
+                text-sm px-3 py-1.5
+                w-full justify-center mt-1
+                md:w-auto md:justify-normal md:mt-0
+              "
               aria-label={`open latest: ${latest.title}`}
               prefetch
             >
@@ -69,7 +74,12 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 function PlaybookListItem({ meta }: { meta: PlaybookMeta }) {
   return (
-    <Link href={meta.url ?? `/playbooks/${meta.slug}`} className="block group" aria-label={meta.title} prefetch>
+    <Link
+      href={meta.url ?? `/playbooks/${meta.slug}`}
+      className="block group"
+      aria-label={meta.title}
+      prefetch
+    >
       <article className="rounded-xl border border-border bg-card p-5 shadow-sm group-hover:shadow-md transition">
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="text-xl font-semibold tracking-tight">{meta.title}</h2>
