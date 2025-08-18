@@ -1,0 +1,108 @@
+---
+title: "Free the Port: Diagnose and Kill Local Listeners (whoport)"
+date: "2025-08-18"
+updated: "2025-08-18"
+slug: "free-the-port"
+description: "When port 3000 is 'already in use', here’s the fast way to identify and free it on macOS, Linux, or Windows."
+tags:
+  - playbooks
+  - networking
+  - dev-tools
+order: 999
+pinned: false
+repo: https://www.github.com/heyosj/whoport.py
+---
+
+> **Scenario:** port 3000 is busy. I need it now. This is the fastest way to see who owns it and free it.
+
+## TL;DR
+1. **See who owns the port:**  
+   ```bash
+   ./whoport 3000
+   ```
+   (Shows IPv4/IPv6 bind status and any listener PIDs/process names.)
+
+2. **Free it (carefully):**  
+   ```bash
+   ./whoport 3000 --kill   # TERM → KILL on macOS/Linux, taskkill /F on Windows
+   ```
+
+3. **No whoport? Quick one-liner (macOS/Linux):**  
+   ```bash
+   for p in $(lsof -nP -iTCP:3000 -sTCP:LISTEN -t); do kill -15 "$p"; done
+   sleep 1
+   for p in $(lsof -nP -iTCP:3000 -sTCP:LISTEN -t); do kill -9 "$p"; done
+   ```
+
+---
+
+## Why ports “randomly” collide
+- a **leftover dev server** (next/vite/etc.) still listening in another tab.
+- an **ipv6-only listener** (`::1` or `[::]`) blocks the port even when ipv4 looks free.
+- bound to a different **interface** (`0.0.0.0` vs `127.0.0.1`).
+- a **docker** container publishing the port.
+- rarely: the app is **udp** or not yet in **LISTEN**.
+
+this playbook checks both **ipv4 and ipv6**, shows the owning process, and offers safe kill options.
+
+## Install the helper (whoport)
+`whoport` is a tiny, single-file python CLI that answers “who’s on this port?”
+
+```bash
+# in your scripts folder
+chmod +x whoport.py
+mv whoport.py whoport    # optional rename
+./whoport 3000
+```
+
+### Example output
+```
+PORT 3000
+IPv4 127.0.0.1 bind: FAIL [Address already in use]
+IPv6 ::1        bind: FAIL [Address already in use]
+
+LISTENERS
+- pid 12345  proc node             addr 127.0.0.1:3000
+```
+
+## Freeing the port
+### Using whoport
+```bash
+./whoport 3000 --kill        # may need sudo on macOS/Linux
+./whoport 3000               # re-check; expect both IPv4+IPv6 bind OK
+```
+
+### Without whoport (macOS/Linux)
+```bash
+lsof -nP -iTCP:3000 -sTCP:LISTEN   # see owners
+for p in $(lsof -nP -iTCP:3000 -sTCP:LISTEN -t); do kill -15 "$p"; done
+sleep 1
+for p in $(lsof -nP -iTCP:3000 -sTCP:LISTEN -t); do kill -9 "$p"; done
+```
+
+### Windows (PowerShell/CMD)
+```powershell
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
+```
+
+## Docker checks (optional)
+```bash
+docker ps --format '{{.ID}}\t{{.Ports}}\t{{.Names}}' | grep ':3000->' || true
+# If found:
+docker kill <container_id>
+```
+
+## IPv6 gotchas
+if `whoport` shows ipv4 free but ipv6 blocked, your app may try ipv6 first. either:
+- bind explicitly to ipv4: `--host 127.0.0.1`, **or**
+- free the ipv6 listener (often another dev server bound to `[::]` or `::1`).
+
+## Make it muscle-memory
+add a shell alias:
+```bash
+alias killport='f(){ for p in $(lsof -nP -iTCP:$1 -sTCP:LISTEN -t); do kill -15 "$p"; done; sleep 1; for p in $(lsof -nP -iTCP:$1 -sTCP:LISTEN -t); do kill -9 $p; done; }; f'
+# usage: killport 3000
+```
+
+---
