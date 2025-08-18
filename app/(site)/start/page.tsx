@@ -1,9 +1,9 @@
 // app/(site)/start/page.tsx
 import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
-import { getPinnedPlaybooks, type PlaybookMeta } from "@/lib/playbooks";
+import { getPinnedPlaybooks } from "@/lib/playbooks";
 import { getPinnedPosts } from "@/lib/posts";
-import { getPinnedLabs, type LabMeta } from "@/lib/labs";
+import { getPinnedLabs } from "@/lib/labs";
 import MailLink from "@/components/MailLink";
 
 export const metadata = { title: "start" };
@@ -15,7 +15,35 @@ const isNew = (iso?: string, days = 14) => {
   const dt = new Date(iso).getTime();
   return Number.isFinite(dt) && (Date.now() - dt) / 86400000 < days;
 };
-const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleDateString() : "");
+const fmt = (iso?: string) =>
+  iso ? new Date(iso).toLocaleDateString(undefined, { month: "numeric", day: "numeric", year: "2-digit" }) : "";
+
+const HIDE = new Set(["playbooks", "labs", "dispatch"]);
+
+function firstUsefulTag(tags?: string[]) {
+  if (!tags) return undefined;
+  for (const t of tags) {
+    if (!t) continue;
+    if (HIDE.has(t.toLowerCase())) continue;
+    return t;
+  }
+  return undefined;
+}
+
+// cap chips to N, preferring extras first, then first useful tag
+function pickChips(extras: (string | undefined)[], tags?: string[], max = 2) {
+  const out: string[] = [];
+  for (const e of extras) {
+    if (!e) continue;
+    if (out.length >= max) break;
+    out.push(e);
+  }
+  if (out.length < max) {
+    const t = firstUsefulTag(tags);
+    if (t) out.push(t);
+  }
+  return out;
+}
 
 export default async function StartPage() {
   noStore();
@@ -52,53 +80,50 @@ export default async function StartPage() {
       {/* floating terminal map */}
       <TerminalTree />
 
-      {/* cards — no forced equal height */}
+      {/* cards */}
       <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 md:items-stretch">
         {play && (
           <Card
             eyebrow="playbook"
-            title={play.title}
-            desc={play.description || undefined}
-            href={play.url}
-            cta="open"
-            chips={[
-              play.pinned ? "favorite" : undefined,
-              isNew(play.updated ?? play.date) ? "new" : undefined,
-              ...(play.tags || []),
-              play.repo ? "repo" : undefined,
+            badges={[
+              (play as any).pinned ? "favorite" : undefined,
+              isNew((play as any).updated ?? play.date) ? "new" : undefined,
             ].filter(Boolean) as string[]}
+            title={play.title}
+            desc={(play as any).description || undefined}
+            href={(play as any).url ?? `/playbooks/${(play as any).slug}`}
+            cta="open"
+            chips={pickChips([(play as any).repo ? "repo" : undefined], (play as any).tags)}
           />
         )}
 
         {post && (
           <Card
             eyebrow="detection"
+            badges={[
+              (post as any).pinned ? "favorite" : undefined,
+              isNew((post as any).updated ?? post.date) ? "new" : undefined,
+            ].filter(Boolean) as string[]}
             title={post.title}
             desc={post.description || undefined}
             href={`/dispatch/${post.slug}`}
             cta="read"
-            chips={[
-              (post as any).pinned ? "favorite" : undefined,
-              isNew((post as any).updated ?? post.date) ? "new" : undefined,
-              (post as any).readingTime,
-              ...((post as any).tags || []),
-            ].filter(Boolean) as string[]}
+            chips={pickChips([(post as any).readingTime], (post as any).tags)}
           />
         )}
 
         {lab && (
           <Card
             eyebrow="lab"
+            badges={[
+              lab.pinned ? "favorite" : undefined,
+              isNew((lab as any).updated ?? lab.date) ? "new" : undefined,
+            ].filter(Boolean) as string[]}
             title={lab.title}
-            desc={(lab as LabMeta).summary || (lab as LabMeta).summary || undefined}
+            desc={lab.summary || undefined}
             href={`/labs/${lab.slug}`}
             cta="open"
-            chips={[
-              lab.pinned ? "favorite" : undefined,
-              isNew(lab.updated ?? lab.date) ? "new" : undefined,
-              fmt(lab.date),
-              ...((lab as LabMeta).tags || []),
-            ].filter(Boolean) as string[]}
+            chips={pickChips([fmt(lab.date)], lab.tags)}
           />
         )}
       </section>
@@ -171,6 +196,14 @@ function TerminalTree() {
   );
 }
 
+function Badge({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-1 py-px text-[10px] leading-[16px] uppercase tracking-wide">
+      {children}
+    </span>
+  );
+}
+
 function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span className="rounded-full border border-[var(--border)] bg-[var(--card)] px-1.5 py-[1px] text-[11px] leading-[18px]">
@@ -180,14 +213,15 @@ function Chip({ children }: { children: React.ReactNode }) {
 }
 
 function Card({
-  eyebrow, title, desc, href, cta, chips = [],
+  eyebrow, badges = [], title, desc, href, cta, chips = [],
 }: {
   eyebrow: string;
+  badges?: string[];    // e.g., ["favorite","new"]
   title: string;
   desc?: string;
   href: string;
   cta: string;
-  chips?: string[];
+  chips?: string[];     // capped to 2 already
 }) {
   return (
     <Link href={href} className="block group" aria-label={title} prefetch>
@@ -199,7 +233,13 @@ function Card({
           transition hover:-translate-y-[1px] hover:shadow-sm
         "
       >
-        <span className="text-[11px] tracking-wide muted">{eyebrow.toLowerCase()}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] tracking-wide muted">{eyebrow.toLowerCase()}</span>
+          {badges.map((b, i) => (
+            <Badge key={i}>{b}</Badge>
+          ))}
+        </div>
+
         <h2 className="font-serif text-lg md:text-xl mt-1 leading-snug clamp-2">{title}</h2>
 
         {desc && <p className="muted mt-1.5 text-sm clamp-2">{desc}</p>}
