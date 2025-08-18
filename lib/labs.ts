@@ -8,6 +8,9 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import React from "react";
 
+export type LabMeta = LabListItem;
+
+
 export type LabFrontmatter = {
   title: string;
   date: string;             // ISO string
@@ -30,6 +33,7 @@ export type LabListItem = {
   tags: string[];
   published: boolean;
   pinned: boolean;          // NEW
+  updated?: string;
 };
 
 export type LabDoc = {

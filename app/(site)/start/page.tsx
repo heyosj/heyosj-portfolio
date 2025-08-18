@@ -1,11 +1,13 @@
 // app/(site)/start/page.tsx
 import Link from "next/link";
-import { getPinnedPlaybooks } from "@/lib/playbooks";
+import { unstable_noStore as noStore } from "next/cache";
+import { getPinnedPlaybooks, type PlaybookMeta } from "@/lib/playbooks";
 import { getPinnedPosts } from "@/lib/posts";
-import { getPinnedLabs } from "@/lib/labs";
+import { getPinnedLabs, type LabMeta } from "@/lib/labs";
 import MailLink from "@/components/MailLink";
 
 export const metadata = { title: "start" };
+export const revalidate = 0;
 
 // --- helpers ---
 const isNew = (iso?: string, days = 14) => {
@@ -16,6 +18,8 @@ const isNew = (iso?: string, days = 14) => {
 const fmt = (iso?: string) => (iso ? new Date(iso).toLocaleDateString() : "");
 
 export default async function StartPage() {
+  noStore();
+
   const [playbooks, posts, labs] = await Promise.all([
     getPinnedPlaybooks(1),
     getPinnedPosts(1),
@@ -54,14 +58,14 @@ export default async function StartPage() {
           <Card
             eyebrow="playbook"
             title={play.title}
-            desc="dns-only audit cli for spf/dmarc/mta-sts/tls-rpt — fast baseline in ~60s."
+            desc={play.description || undefined}
             href={play.url}
-            cta="try"
+            cta="open"
             chips={[
-              isNew(play.date) ? "new" : undefined,
-              "dns-only",
-              "cli",
-              (play as any).repo ? "repo" : undefined,
+              play.pinned ? "favorite" : undefined,
+              isNew(play.updated ?? play.date) ? "new" : undefined,
+              ...(play.tags || []),
+              play.repo ? "repo" : undefined,
             ].filter(Boolean) as string[]}
           />
         )}
@@ -70,12 +74,14 @@ export default async function StartPage() {
           <Card
             eyebrow="detection"
             title={post.title}
-            desc={post.description || "what tls-rpt is, why it matters, and the minimal steps to enable it."}
+            desc={post.description || undefined}
             href={`/dispatch/${post.slug}`}
             cta="read"
             chips={[
-              isNew((post as any).updated) ? "new" : undefined,
+              (post as any).pinned ? "favorite" : undefined,
+              isNew((post as any).updated ?? post.date) ? "new" : undefined,
               (post as any).readingTime,
+              ...((post as any).tags || []),
             ].filter(Boolean) as string[]}
           />
         )}
@@ -84,12 +90,14 @@ export default async function StartPage() {
           <Card
             eyebrow="lab"
             title={lab.title}
-            desc={lab.summary || "end-to-end walkthrough with artifacts; pii redacted."}
+            desc={(lab as LabMeta).summary || (lab as LabMeta).summary || undefined}
             href={`/labs/${lab.slug}`}
             cta="open"
             chips={[
-              isNew(lab.date) ? "new" : undefined,
-              `${fmt(lab.date)}`,
+              lab.pinned ? "favorite" : undefined,
+              isNew(lab.updated ?? lab.date) ? "new" : undefined,
+              fmt(lab.date),
+              ...((lab as LabMeta).tags || []),
             ].filter(Boolean) as string[]}
           />
         )}
@@ -182,7 +190,7 @@ function Card({
   chips?: string[];
 }) {
   return (
-    <Link href={href} className="block group" aria-label={title}>
+    <Link href={href} className="block group" aria-label={title} prefetch>
       <article
         className="
           card h-full rounded-2xl border p-5 md:p-6

@@ -1,12 +1,23 @@
 // app/(site)/playbooks/page.tsx
 import Link from "next/link";
+import { unstable_noStore as noStore } from "next/cache";
 import { getPlaybooksMeta, type PlaybookMeta } from "@/lib/playbooks";
 
 export const metadata = { title: "playbooks" };
+export const revalidate = 0; // ensure fresh read
+
+function ts(m: PlaybookMeta) {
+  // prefer updated if present, else date
+  return +new Date((m as any).updated ?? m.date);
+}
 
 export default async function PlaybooksPage() {
+  noStore();
   const items = await getPlaybooksMeta();
-  const latest = items[0];
+
+  // sort newest -> oldest once; reuse for button + list
+  const sorted = [...items].sort((a, b) => ts(b) - ts(a));
+  const latest = sorted[0];
 
   return (
     <section className="space-y-6">
@@ -23,8 +34,10 @@ export default async function PlaybooksPage() {
 
           {latest && (
             <Link
-              href={latest.url}
+              href={latest.url ?? `/playbooks/${latest.slug}`}
               className="inline-flex items-center gap-1 rounded-md border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm shrink-0"
+              aria-label={`open latest: ${latest.title}`}
+              prefetch
             >
               open latest <span aria-hidden>→</span>
             </Link>
@@ -34,7 +47,7 @@ export default async function PlaybooksPage() {
 
       {/* list */}
       <ol className="space-y-3">
-        {items.map((pb) => (
+        {sorted.map((pb) => (
           <li key={pb.slug}>
             <PlaybookListItem meta={pb} />
           </li>
@@ -56,12 +69,12 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 function PlaybookListItem({ meta }: { meta: PlaybookMeta }) {
   return (
-    <Link href={meta.url} className="block group" aria-label={meta.title}>
+    <Link href={meta.url ?? `/playbooks/${meta.slug}`} className="block group" aria-label={meta.title} prefetch>
       <article className="rounded-xl border border-border bg-card p-5 shadow-sm group-hover:shadow-md transition">
         <div className="flex items-baseline justify-between gap-4">
           <h2 className="text-xl font-semibold tracking-tight">{meta.title}</h2>
           <span className="text-xs muted whitespace-nowrap">
-            {new Date(meta.date).toLocaleDateString()}
+            {new Date((meta as any).updated ?? meta.date).toLocaleDateString()}
           </span>
         </div>
 

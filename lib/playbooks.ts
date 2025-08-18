@@ -1,146 +1,91 @@
 // lib/playbooks.ts
-import 'server-only';
-import fs from 'node:fs';
-import path from 'node:path';
-import matter from 'gray-matter';
-import { z } from 'zod';
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
+import { z } from "zod";
+
+const dir = path.join(process.cwd(), "content", "playbooks");
+
+const Slug = z
+  .string()
+  .regex(/^[a-z0-9][a-z0-9-]*$/, { message: "use lowercase letters, numbers, and dashes" });
+
+const FM = z.object({
+  title: z.string(),
+  date: z.string(),
+  updated: z.string().optional(),
+  description: z.string().optional().default(""),
+  tags: z.array(z.string()).optional().default([]),
+  slug: Slug.optional(),
+  url: z.string().optional(),
+  repo: z.string().optional(),
+  order: z.coerce.number().optional().default(999),
+  // favorites aliases
+  pinned: z.coerce.boolean().optional(),
+  featured: z.coerce.boolean().optional(),
+  favorite: z.coerce.boolean().optional(),
+});
 
 export type PlaybookMeta = {
   title: string;
+  date: string;
+  updated?: string;
   description: string;
-  date: string;   // ISO yyyy-mm-dd
-  slug: string;
   tags: string[];
-  order?: number;
-  url: string;    // /playbooks/<slug>
-  repo?: string;  // optional GitHub URL
-  pinned?: boolean; // NEW
+  slug: string;
+  url: string;
+  repo?: string;
+  order: number;
+  pinned: boolean;
 };
 
-export type Playbook = { meta: PlaybookMeta; content: string };
-
-export const PLAYBOOKS_DIR =
-  process.env.PLAYBOOKS_DIR || path.join(process.cwd(), 'content', 'playbooks');
-
-const FRONTMATTER = z.object({
-  title: z.string(),
-  description: z.string().default(''),
-  date: z.string().refine((d) => !Number.isNaN(new Date(d).getTime()), 'bad date'),
-  slug: z.string().optional(),
-  tags: z.array(z.string()).default([]),
-  order: z.coerce.number().optional(),
-  repo: z.string().url().optional(),
-  pinned: z.coerce.boolean().optional().default(false), // NEW
-});
-
-function kebab(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-function normalizeDate(d: string) { return new Date(d).toISOString().slice(0,10); }
-
-function listFiles(): string[] {
-  if (!fs.existsSync(PLAYBOOKS_DIR)) return [];
-  return fs.readdirSync(PLAYBOOKS_DIR)
-    .filter((f) => /\.(md|mdx)$/i.test(f))
-    .map((f) => path.join(PLAYBOOKS_DIR, f));
+function slugify(file: string) {
+  return path
+    .basename(file, path.extname(file))
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 }
 
-function metaFromFile(filepath: string): PlaybookMeta {
-  const raw = fs.readFileSync(filepath, 'utf8');
-  const { data } = matter(raw);
-  const fm = FRONTMATTER.parse(data);
-  const fileSlug = kebab(path.basename(filepath, path.extname(filepath)));
-  const slug = fm.slug ? kebab(fm.slug) : fileSlug;
+export async function getPlaybooksMeta(): Promise<PlaybookMeta[]> {
+  if (!fs.existsSync(dir)) return [];
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".md") || f.endsWith(".mdx"));
 
-  return {
-    title: fm.title,
-    description: fm.description ?? '',
-    date: normalizeDate(fm.date),
-    slug,
-    tags: fm.tags ?? [],
-    order: fm.order,
-    url: `/playbooks/${slug}`,
-    repo: fm.repo,
-    pinned: fm.pinned ?? false,
-  };
-}
+  const items: PlaybookMeta[] = [];
+  for (const file of files) {
+    const raw = fs.readFileSync(path.join(dir, file), "utf8");
+    const { data } = matter(raw);
+    const fm = FM.parse(data);
+    const slug = fm.slug ?? slugify(file);
+    const url = fm.url ?? `/playbooks/${slug}`;
 
-function sortPlaybooks(a: PlaybookMeta, b: PlaybookMeta) {
-  const ao = a.order ?? Number.POSITIVE_INFINITY;
-  const bo = b.order ?? Number.POSITIVE_INFINITY;
-  if (ao !== bo) return ao - bo;
-  if (a.date !== b.date) return a.date > b.date ? -1 : 1;
-  return a.title.localeCompare(b.title);
-}
+    const pinned = Boolean((fm as any).favorite ?? (fm as any).featured ?? fm.pinned ?? false);
 
-export function getPlaybooksMeta(): PlaybookMeta[] {
-  return listFiles().map(metaFromFile).sort(sortPlaybooks);
-}
-
-/** Match by filename or frontmatter slug. */
-export function getPlaybook(slug: string): Playbook {
-  const want = kebab(slug);
-
-  // direct filename
-  const direct = [path.join(PLAYBOOKS_DIR, `${want}.mdx`), path.join(PLAYBOOKS_DIR, `${want}.md`)]
-    .find((p) => fs.existsSync(p));
-  if (direct) {
-    const raw = fs.readFileSync(direct, 'utf8');
-    const { content, data } = matter(raw);
-    const fm = FRONTMATTER.parse(data);
-    const s = kebab(fm.slug ?? path.basename(direct, path.extname(direct)));
-    return {
-      meta: {
-        title: fm.title,
-        description: fm.description ?? '',
-        date: normalizeDate(fm.date),
-        slug: s,
-        tags: fm.tags ?? [],
-        order: fm.order,
-        url: `/playbooks/${s}`,
-        repo: fm.repo,
-        pinned: fm.pinned ?? false,
-      },
-      content,
-    };
+    items.push({
+      title: fm.title,
+      date: fm.date,
+      updated: fm.updated ?? fm.date,
+      description: fm.description,
+      tags: fm.tags,
+      slug,
+      url,
+      repo: fm.repo,
+      order: fm.order ?? 999,
+      pinned,
+    });
   }
 
-  // fallback: scan for frontmatter slug/filebase match
-  for (const fp of listFiles()) {
-    const raw = fs.readFileSync(fp, 'utf8');
-    const { content, data } = matter(raw);
-    const parsed = FRONTMATTER.safeParse(data);
-    const fm = parsed.success ? parsed.data : undefined;
-
-    const fileBase = kebab(path.basename(fp, path.extname(fp)));
-    const fmSlug = fm?.slug ? kebab(fm.slug) : undefined;
-
-    if (want === fileBase || (fmSlug && want === fmSlug)) {
-      const s = fmSlug ?? fileBase;
-      return {
-        meta: {
-          title: fm?.title ?? path.basename(fp),
-          description: fm?.description ?? '',
-          date: normalizeDate(fm?.date ?? new Date().toISOString()),
-          slug: s,
-          tags: fm?.tags ?? [],
-          order: fm?.order,
-          url: `/playbooks/${s}`,
-          repo: fm?.repo,
-          pinned: fm?.pinned ?? false,
-        },
-        content,
-      };
-    }
-  }
-
-  throw new Error(`Playbook not found for slug "${slug}"`);
+  // order asc, then updated/date desc
+  return items.sort(
+    (a, b) => (a.order ?? 999) - (b.order ?? 999) || +new Date(b.updated ?? b.date) - +new Date(a.updated ?? a.date)
+  );
 }
 
-// NEW: pinned helpers
-export function getPinnedPlaybooks(limit = 1): PlaybookMeta[] {
-  const all = getPlaybooksMeta();
-  const pinned = all.filter(p => p.pinned);
-  const source = pinned.length ? pinned : all;
+export async function getPinnedPlaybooks(limit = 1): Promise<PlaybookMeta[]> {
+  const all = await getPlaybooksMeta();
+  const favs = all.filter((i) => i.pinned);
+  const source = (favs.length ? favs : all).sort(
+    (a, b) => +new Date(b.updated ?? b.date) - +new Date(a.updated ?? a.date)
+  );
   return source.slice(0, limit);
 }

@@ -21,28 +21,31 @@ const Slug = z
 // frontmatter schema with friendlier coercions/defaults
 const Frontmatter = z.object({
   title: z.string(),
+
   // accept Date | string and coerce to "YYYY-MM-DD"
   date: z.preprocess((v) => {
     if (v instanceof Date) return v.toISOString().slice(0, 10);
     if (typeof v === "string") return v;
     return String(v);
   }, z.string()),
-  // optional manual override for "updated" (no more mtime fallback)
+
+  // optional manual override for "updated"
   updated: z.preprocess((v) => {
     if (v == null) return undefined;
     if (v instanceof Date) return v.toISOString().slice(0, 10);
     if (typeof v === "string") return v;
     return String(v);
   }, z.string().optional()),
-  // show/hide updated everywhere (header, JSON-LD, OpenGraph)
-  updatedPublic: z.coerce.boolean().optional().default(true),
+
   description: z.string().optional().default(""),
   tags: z.array(z.string()).optional().default([]),
   slug: Slug.optional(),
   order: z.coerce.number().optional().default(999),
-  pinned: z.coerce.boolean().optional().default(false),
-  // optional little label above the H1 (e.g., "Investigation" for OSINT labs)
-  eyebrow: z.string().optional(),
+
+  // favorites aliases
+  pinned: z.coerce.boolean().optional(),
+  featured: z.coerce.boolean().optional(),
+  favorite: z.coerce.boolean().optional(),
 });
 
 function slugifyFilename(file: string) {
@@ -67,8 +70,7 @@ async function markdownToHtml(markdown: string): Promise<string> {
 export type Post = {
   title: string;
   date: string;
-  updated?: string;          // now optional
-  updatedPublic?: boolean;   // optional toggle
+  updated: string;
   description: string;
   tags: string[];
   slug: string;
@@ -76,7 +78,6 @@ export type Post = {
   html: string;
   order: number;
   pinned: boolean;
-  eyebrow?: string;          // optional eyebrow label
 };
 
 export async function getAllPosts(): Promise<Post[]> {
@@ -89,35 +90,33 @@ export async function getAllPosts(): Promise<Post[]> {
     const raw = fs.readFileSync(fullPath, "utf8");
     const { content, data } = matter(raw);
 
-    // parse & normalize frontmatter
     const fm = Frontmatter.parse(data);
     const slug = fm.slug ?? slugifyFilename(file);
 
     const rt = readingTime(content).text;
     const compiled = await markdownToHtml(content);
 
-    // Only keep `updated` if provided AND after publish date
-    const updatedValid =
-      fm.updated && new Date(fm.updated) > new Date(fm.date) ? fm.updated : undefined;
+    // Stable updated: only show if provided, else equal to date
+    const updated = fm.updated ?? fm.date;
 
-    const post: Post = {
+    // Normalize favorites → pinned
+    const pinned = Boolean((fm as any).favorite ?? (fm as any).featured ?? fm.pinned ?? false);
+
+    posts.push({
       title: fm.title,
       date: fm.date,
+      updated,
       description: fm.description,
       tags: fm.tags,
       slug,
       readingTime: rt,
       html: compiled,
-      order: fm.order,
-      pinned: fm.pinned,
-      eyebrow: fm.eyebrow,
-      ...(updatedValid ? { updated: updatedValid, updatedPublic: fm.updatedPublic } : {}),
-    };
-
-    posts.push(post);
+      order: fm.order ?? 999,
+      pinned,
+    });
   }
 
-  // Sort by order first, then by date (descending)
+  // order asc, then date desc
   return posts.sort(
     (a, b) => (a.order ?? 999) - (b.order ?? 999) || +new Date(b.date) - +new Date(a.date)
   );
@@ -160,9 +159,11 @@ export async function getRecentPosts(limit = 5) {
 
 // ---- Pinned (for Start) ----
 export async function getPinnedPosts(limit = 1) {
-  const posts = await getAllPostsByDate();
-  const pinned = posts.filter((p) => p.pinned);
-  const source = pinned.length ? pinned : posts;
+  const posts = await getAllPosts();
+  const favs = posts.filter((p) => p.pinned);
+  const source = (favs.length ? favs : posts).sort(
+    (a, b) => +new Date(b.updated ?? b.date) - +new Date(a.updated ?? a.date)
+  );
   return source.slice(0, limit);
 }
 
@@ -178,9 +179,7 @@ export async function getRelatedPosts(slug: string, limit = 3) {
   if (isSeries) {
     return posts
       .filter(
-        (p) =>
-          p.slug !== slug &&
-          p.tags.map((t) => t.toLowerCase()).includes("email security")
+        (p) => p.slug !== slug && p.tags.map((t) => t.toLowerCase()).includes("email security")
       )
       .slice(0, limit);
   }
@@ -188,10 +187,7 @@ export async function getRelatedPosts(slug: string, limit = 3) {
   const scored = posts
     .filter((p) => p.slug !== slug)
     .map((p) => {
-      const shared = p.tags.reduce(
-        (n, t) => n + (tagsLower.has(t.toLowerCase()) ? 1 : 0),
-        0
-      );
+      const shared = p.tags.reduce((n, t) => n + (tagsLower.has(t.toLowerCase()) ? 1 : 0), 0);
       return { p, shared };
     })
     .filter((x) => x.shared > 0)
