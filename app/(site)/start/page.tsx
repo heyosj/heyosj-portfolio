@@ -5,6 +5,7 @@ import { getPinnedPlaybooks } from "@/lib/playbooks";
 import { getPinnedPosts } from "@/lib/posts";
 import { getPinnedLabs } from "@/lib/labs";
 import MailLink from "@/components/MailLink";
+import BackLink from "@/components/BackLink";
 
 export const metadata = { title: "start" };
 export const revalidate = 0;
