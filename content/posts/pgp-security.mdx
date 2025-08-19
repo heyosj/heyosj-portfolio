@@ -1,0 +1,132 @@
+---
+title: "PGP + security.txt: Fast, Practical Notes"
+description: "OpenPGP basics, why to encrypt reports and sign what you publish, and how to cleartext-sign your security.txt."
+date: "2025-08-19"
+slug: "pgp-security"
+tags: ["pgp", "openpgp", "security.txt", "secops", "reference"]
+eyebrow: "Reference"
+favorite: false
+---
+
+> Just the steps and the why.
+
+## TL;DR
+- **Encrypt** with the **recipient’s public key**; only their **private key** can decrypt.
+- **Sign** with **your private key**; anyone can verify with **your public key**.
+- For vulnerability intake: encrypt reports and **cleartext-sign** your `security.txt`.
+
+---
+
+## Why Use OpenPGP for Vulnerability Intake
+- **Confidentiality**: researchers can send details without leaking to the wrong inbox.  
+- **Authenticity**: sign what you publish (like `security.txt`) so it’s harder to spoof.  
+- **Signal**: shows you follow interoperable, modern practice.
+
+---
+
+## OpenPGP in One Minute
+- **Encrypt** → keep it secret **in transit**.  
+- **Sign** → prove who sent it and that it wasn’t altered.  
+- **Public key** → shareable. **Private key** → never share.
+
+---
+
+## Alice ↔ Bob (Plain English)
+
+### Encrypt to Bob (Confidentiality)
+1. Alice gets **Bob’s public key**.  
+2. Alice **encrypts** the message with Bob’s public key. It’s unreadable in transit.  
+3. **Bob decrypts** with **Bob’s private key** and reads it.
+
+> Public key is safe to share. Private key stays secret.
+
+### Prove It’s Alice (Signing = Authenticity + Integrity)
+1. Alice **signs** with **Alice’s private key** (the message can remain readable; the signature is metadata).  
+2. Bob **verifies** with **Alice’s public key**.  
+3. If it verifies, the message wasn’t changed and the sender had Alice’s private key.
+
+### Do Both (Recommended): **Sign, Then Encrypt**
+1. Alice **signs** the message with **Alice’s private key**.  
+2. Alice **encrypts** the signed message with **Bob’s public key**.  
+3. Bob **decrypts** with **Bob’s private key**.  
+4. Bob **verifies** with **Alice’s public key**.
+
+---
+
+## Implement: Signed `security.txt`
+Serve over HTTPS at `/.well-known/security.txt`. Edit a source file and sign the published one.
+
+### 1) Keep an Editable Source
+Create `security-og.txt`:
+
+~~~text
+Contact: mailto:security@example.com
+Encryption: https://example.com/pgp-key.txt
+Policy: https://example.com/vdp
+Canonical: https://example.com/.well-known/security.txt
+Expires: 2025-12-31T00:00:00Z
+~~~
+
+> Tip: link to your ASCII-armored public key in **Encryption:**. Don’t paste the whole key into the file.
+
+### 2) Cleartext-Sign the File
+~~~bash
+# Produce the signed, human-readable file (served at /.well-known/security.txt)
+gpg --clearsign --output public/.well-known/security.txt security-og.txt
+
+# Verify later
+gpg --verify public/.well-known/security.txt
+~~~
+
+**Re-sign on every change.** Edit `security-og.txt`, then run `--clearsign` again.
+
+### Quick Verify Locally
+- Good signature → output shows `Good signature from ...`.  
+- Changed content without re-signing → verify fails.
+
+---
+
+## Gotchas
+- Encrypt with the **recipient’s** public key; **sign** with **your** private key.  
+- Keep email identity consistent (same address in your signatures and contact).  
+- Rotate keys as needed; update **Encryption:** and **Expires:** and re-sign.  
+- Include **Canonical:** when signing so verifiers know the definitive URL.  
+- Place the signed file under `public/.well-known/` so it’s served raw (no transforms, no redirects).
+
+---
+
+## Minimal Command Cheat Sheet
+~~~bash
+# Export your public key (ASCII) to host at /pgp-key.txt
+# Replace KEYID with your key id or uid
+gpg --export -a KEYID > public/pgp-key.txt
+
+# Sign and verify
+gpg --clearsign --output public/.well-known/security.txt security-og.txt
+gpg --verify public/.well-known/security.txt
+~~~
+
+### NPM Scripts (Optional)
+*(Add these to your `package.json` → `"scripts"`)*
+
+~~~json
+{
+  "sec:sign": "gpg --clearsign --output public/.well-known/security.txt security-og.txt",
+  "sec:verify": "gpg --verify public/.well-known/security.txt"
+}
+~~~
+
+> Next.js/Vercel: anything under `public/` is served at the site root, so `public/.well-known/security.txt` becomes `/.well-known/security.txt`.
+
+### Add Your Key Fingerprint
+~~~bash
+gpg --fingerprint KEYID
+~~~
+Copy the long fingerprint (e.g., `ABCD 1234 ...`) into this post or a small `/pgp` page so researchers can double-check they have the right key.
+
+### When to Rotate & Update
+- Key compromise or suspected exposure → rotate immediately.  
+- Personnel/role changes → generate a new key and update `Encryption:`.  
+- At least annually: bump `Expires:` and re-sign `security.txt`.
+
+*Encrypt for confidentiality. Sign for authenticity. Keep the `security.txt` signature fresh.*
