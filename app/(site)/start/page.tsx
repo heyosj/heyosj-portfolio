@@ -68,7 +68,7 @@ export default async function StartPage() {
 
         <dl className="mt-2 grid grid-cols-[5.5rem_1fr] md:grid-cols-[6rem_1fr] gap-y-1 text-[13px]">
           <dt className="font-medium text-foreground">now:</dt>
-          <dd className="muted">security analyst @ mls • georgia tech grad student</dd>
+          <dd className="muted">security analyst @ mls • mscs @ georgia tech</dd>
 
           <dt className="font-medium text-foreground">focus:</dt>
           <dd className="muted">email &amp; cloud security, threat hunting</dd>

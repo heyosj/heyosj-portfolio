@@ -19,7 +19,7 @@ export default function About() {
         <dl className="mt-3 grid gap-y-1.5 [grid-template-columns:4.25rem_1fr] md:[grid-template-columns:5rem_1fr] text-[13px]">
           <div className="contents">
             <dt className="font-medium text-foreground">now:</dt>
-            <dd className="muted">security analyst @ mls • georgia tech grad student</dd>
+            <dd className="muted">security analyst @ mls • mscs @ georgia tech</dd>
           </div>
           <div className="contents">
             <dt className="font-medium text-foreground">focus:</dt>
