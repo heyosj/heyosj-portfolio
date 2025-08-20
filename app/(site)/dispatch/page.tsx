@@ -61,7 +61,6 @@ export default async function Dispatch() {
         ))}
       </div>
 
-      <SubscribeCTA />
     </section>
   );
 }
