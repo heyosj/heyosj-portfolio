@@ -1,0 +1,90 @@
+---
+title: "Parse Email Headers Fast (hoptrace)"
+date: "2025-08-24"
+updated: "2025-08-24"
+slug: "hoptrace"
+description: "Turn jumbled headers into a readable hop trail with SPF/DKIM/DMARC snapshots — evidence only."
+tags:
+  - playbooks
+  - email
+  - deliverability
+  - sec-tools
+order: 999
+pinned: false
+repo: https://github.com/heyosj/hoptrace
+favorite: true
+---
+
+> **Scenario:** I’ve got messy headers and zero patience. I want the route, what changed, and what the receiver said about SPF/DKIM/DMARC — fast.
+
+## TL;DR
+1) **Run it**
+```bash
+python3 hoptrace.py message.eml
+# or
+cat headers.txt | python3 hoptrace.py -
+```
+
+2) **Read the top block**  
+`AUTH (snapshot)` shows the latest **SPF / DKIM / DMARC** receivers reported.  
+**DMARC rule:** pass if **SPF=pass & mfrom aligns with From**, *or* **DKIM=pass & d= aligns with From**.
+
+3) **Skim the hops**  
+Look for `+ DKIM added here` and per-hop `auth:` lines to see **where** changes happened.
+
+---
+
+## What This Is
+A tiny, evidence-first header parser. It prints:
+- **AUTH (snapshot)** — last reported SPF/DKIM/DMARC (no guessing)
+- **Path** — hop count + final receiver (e.g., “Gmail mailbox” / “Microsoft 365 mailbox”)
+- **HOPS** — `from → by`, with per-hop `auth:` and **“DKIM added here”** markers
+
+No verdicts. No DNS. Just the parts you actually need.
+
+---
+
+## Why I Built It
+I don’t like reading jumbled headers. Manually diffing `Received:` lines and three flavors of `Authentication-Results:` is slow. I wanted a quick, consistent readout that surfaces **where** things changed and **what** the receiver claimed so I can decide faster.
+
+---
+
+## Quick use
+```bash
+# basic
+python3 hoptrace.py message.eml
+
+# show protocol/time columns
+python3 hoptrace.py message.eml --proto
+
+# JSON for tooling
+python3 hoptrace.py message.eml --json | jq .
+```
+
+---
+
+## Example (what you’ll see)
+```
+hoptrace — evidence
+AUTH (snapshot):
+  SPF:   pass (mfrom=mail.n.convertkit.com)
+  DKIM:  pass (d=n.convertkit.com,sendgrid.info)
+  DMARC: fail (from=random.com, p=none)
+Path: 4 hops → final 2002:a05:…:be61 (Gmail mailbox)
+
+HOPS (4):
+ 1) MTI5NTYxNDE → geopod-ismtpd-26
+ 2) geopod-ismtpd-26 → recvd-dfd74b7d5-8gmfn
+     + DKIM added here: d=n.convertkit.com (s=s1)
+     + DKIM added here: d=sendgrid.info (s=smtpapi)
+ 3) o38.ck.n.convertkit.com → mx.google.com
+     auth: SPF=pass; DKIM=pass; DMARC=fail (mfrom=mail.n.convertkit.com) (d=n.convertkit.com,sendgrid.info) (from=random.com, p=none)
+ 4) mx.google.com → 2002:a05:…:be61
+```
+
+---
+
+## Notes
+- **DKIM header present but `DKIM=unknown`?** Receiver didn’t publish a DKIM result; hoptrace will say “header present” when it detects one.
+- **No inbox/spam guesses.** It only reports what receivers wrote.
+- **Headers-only input** works (just keep one blank line before the body).
