@@ -6,6 +6,7 @@ import { getPinnedPosts } from "@/lib/posts";
 import { getPinnedLabs } from "@/lib/labs";
 import MailLink from "@/components/MailLink";
 import BackLink from "@/components/BackLink";
+import BlueConBanner from "@/components/BlueConBanner";
 
 export const metadata = { title: "start" };
 export const revalidate = 0;
@@ -46,8 +47,17 @@ function pickChips(extras: (string | undefined)[], tags?: string[], max = 2) {
   return out;
 }
 
-export default async function StartPage() {
+// For the banner CTA
+const LINKEDIN_URL = process.env.NEXT_PUBLIC_LINKEDIN_URL ?? "https://www.linkedin.com/in/";
+
+export default async function StartPage({
+  searchParams,
+}: {
+  searchParams?: { from?: string };
+}) {
   noStore();
+
+  const isBlueCon = searchParams?.from === "bluecon";
 
   const [playbooks, posts, labs] = await Promise.all([
     getPinnedPlaybooks(1),
@@ -60,100 +70,114 @@ export default async function StartPage() {
   const lab = labs[0];
 
   return (
-    <section className="space-y-6">
-      {/* identity — short + factual */}
-      <header className="card p-5 md:p-6">
-        <h1 className="font-serif text-3xl md:text-[34px] leading-snug">the shortlist</h1>
-        <p className="muted mt-1 text-[13.5px]">three picks: one tool, one detection, one lab</p>
+    <>
+      {/* Personalized banner only when coming via /bluecon */}
+      {isBlueCon && <BlueConBanner linkedinUrl={LINKEDIN_URL} />}
 
-        <dl className="mt-2 grid grid-cols-[5.5rem_1fr] md:grid-cols-[6rem_1fr] gap-y-1 text-[13px]">
-          <dt className="font-medium text-foreground">now:</dt>
-          <dd className="muted">security analyst @ mls • mscs @ georgia tech</dd>
+      <section className="space-y-6">
+        {/* identity — short + factual */}
+        <header className="card p-5 md:p-6">
+          <h1 className="font-serif text-3xl md:text-[34px] leading-snug">the shortlist</h1>
+          <p className="muted mt-1 text-[13.5px]">three picks: one tool, one detection, one lab</p>
 
-          <dt className="font-medium text-foreground">focus:</dt>
-          <dd className="muted">email &amp; cloud security, threat hunting</dd>
+          <dl className="mt-2 grid grid-cols-[5.5rem_1fr] md:grid-cols-[6rem_1fr] gap-y-1 text-[13px]">
+            <dt className="font-medium text-foreground">now:</dt>
+            <dd className="muted">security analyst @ mls</dd>
 
-          <dt className="font-medium text-foreground">overview:</dt>
-          <dd className="muted">detections • examples • rationale</dd>
-        </dl>
-      </header>
+            <dt className="font-medium text-foreground">focus:</dt>
+            <dd className="muted">email &amp; cloud security, threat hunting</dd>
 
-      {/* floating terminal map */}
-      <TerminalTree />
+            <dt className="font-medium text-foreground">overview:</dt>
+            <dd className="muted">detections • examples • rationale</dd>
+          </dl>
+        </header>
 
-      {/* cards */}
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 md:items-stretch">
-        {play && (
-          <Card
-            eyebrow="playbook"
-            badges={[
-              (play as any).pinned ? "favorite" : undefined,
-              isNew((play as any).updated ?? play.date) ? "new" : undefined,
-            ].filter(Boolean) as string[]}
-            title={play.title}
-            desc={(play as any).description || undefined}
-            href={(play as any).url ?? `/playbooks/${(play as any).slug}`}
-            cta="open"
-            chips={pickChips([(play as any).repo ? "repo" : undefined], (play as any).tags)}
-          />
-        )}
+        {/* floating terminal map */}
+        <TerminalTree />
 
-        {post && (
-          <Card
-            eyebrow="detection"
-            badges={[
-              (post as any).pinned ? "favorite" : undefined,
-              isNew((post as any).updated ?? post.date) ? "new" : undefined,
-            ].filter(Boolean) as string[]}
-            title={post.title}
-            desc={post.description || undefined}
-            href={`/dispatch/${post.slug}`}
-            cta="read"
-            chips={pickChips([(post as any).readingTime], (post as any).tags)}
-          />
-        )}
+        {/* cards */}
+        <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 md:items-stretch">
+          {play && (
+            <Card
+              eyebrow="playbook"
+              badges={[
+                (play as any).pinned ? "favorite" : undefined,
+                isNew((play as any).updated ?? play.date) ? "new" : undefined,
+              ].filter(Boolean) as string[]}
+              title={play.title}
+              desc={(play as any).description || undefined}
+              href={(play as any).url ?? `/playbooks/${(play as any).slug}`}
+              cta="open"
+              chips={pickChips([(play as any).repo ? "repo" : undefined], (play as any).tags)}
+            />
+          )}
 
-        {lab && (
-          <Card
-            eyebrow="lab"
-            badges={[
-              lab.pinned ? "favorite" : undefined,
-              isNew((lab as any).updated ?? lab.date) ? "new" : undefined,
-            ].filter(Boolean) as string[]}
-            title={lab.title}
-            desc={lab.summary || undefined}
-            href={`/labs/${lab.slug}`}
-            cta="open"
-            chips={pickChips([fmt(lab.date)], lab.tags)}
-          />
-        )}
+          {post && (
+            <Card
+              eyebrow="detection"
+              badges={[
+                (post as any).pinned ? "favorite" : undefined,
+                isNew((post as any).updated ?? post.date) ? "new" : undefined,
+              ].filter(Boolean) as string[]}
+              title={post.title}
+              desc={post.description || undefined}
+              href={`/dispatch/${post.slug}`}
+              cta="read"
+              chips={pickChips([(post as any).readingTime], (post as any).tags)}
+            />
+          )}
+
+          {lab && (
+            <Card
+              eyebrow="lab"
+              badges={[
+                lab.pinned ? "favorite" : undefined,
+                isNew((lab as any).updated ?? lab.date) ? "new" : undefined,
+              ].filter(Boolean) as string[]}
+              title={lab.title}
+              desc={lab.summary || undefined}
+              href={`/labs/${lab.slug}`}
+              cta="open"
+              chips={pickChips([fmt(lab.date)], lab.tags)}
+            />
+          )}
+        </section>
+
+        {/* footer */}
+        <div className="muted mt-6 space-y-2">
+          <p>
+            prefer the long way around? explore{" "}
+            <Link className="underline" href="/dispatch" target="_blank" rel="noopener noreferrer" prefetch={false}>
+              dispatch
+            </Link>
+            ,{" "}
+            <Link className="underline" href="/playbooks" target="_blank" rel="noopener noreferrer" prefetch={false}>
+              playbooks
+            </Link>
+            , and{" "}
+            <Link className="underline" href="/labs" target="_blank" rel="noopener noreferrer" prefetch={false}>
+              labs
+            </Link>
+            .
+          </p>
+
+          <p className="flex flex-wrap items-center gap-2">
+            <span>say hi:</span>
+            <MailLink />
+            <span>•</span>
+            <a
+              className="underline"
+              href="https://www.linkedin.com/in/heyosj"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="linkedin"
+            >
+              linkedin
+            </a>
+          </p>
+        </div>
       </section>
-
-      {/* footer */}
-      <div className="muted mt-6 space-y-2">
-        <p>
-          prefer the long way around? explore{" "}
-          <Link className="underline" href="/dispatch">dispatch</Link>,{" "}
-          <Link className="underline" href="/playbooks">playbooks</Link>, and{" "}
-          <Link className="underline" href="/labs">labs</Link>.
-        </p>
-
-        <p className="flex flex-wrap items-center gap-2">
-          <span>say hi:</span>
-          <MailLink />
-          <span>•</span>
-          <a
-            className="underline"
-            href="https://www.linkedin.com/in/heyosj"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="linkedin"
-          >
-            linkedin
-          </a>
-        </p>
-      </div>
-    </section>
+    </>
   );
 }
 
@@ -178,18 +202,29 @@ function TerminalTree() {
       <div className="px-4 py-5 md:py-6 font-mono text-[13.5px] md:text-sm leading-7 tracking-tight">
         <div className="muted">$ tree -L 1</div>
         <div>
-          <Link className="underline" href="/">heyosj</Link>
+          <Link className="underline" href="/" target="_blank" rel="noopener noreferrer" prefetch={false}>
+            heyosj
+          </Link>
         </div>
         <div className="pl-4">
-          ├── <Link className="underline" href="/dispatch">dispatch</Link>
+          ├──{" "}
+          <Link className="underline" href="/dispatch" target="_blank" rel="noopener noreferrer" prefetch={false}>
+            dispatch
+          </Link>
           <span className="muted"> — notes & breakdowns</span>
         </div>
         <div className="pl-4">
-          ├── <Link className="underline" href="/playbooks">playbooks</Link>
+          ├──{" "}
+          <Link className="underline" href="/playbooks" target="_blank" rel="noopener noreferrer" prefetch={false}>
+            playbooks
+          </Link>
           <span className="muted"> — scripts & runbooks</span>
         </div>
         <div className="pl-4">
-          └── <Link className="underline" href="/labs">labs</Link>
+          └──{" "}
+          <Link className="underline" href="/labs" target="_blank" rel="noopener noreferrer" prefetch={false}>
+            labs
+          </Link>
           <span className="muted"> — research, ctfs, experiments</span>
         </div>
       </div>
@@ -225,7 +260,14 @@ function Card({
   chips?: string[];     // capped to 2 already
 }) {
   return (
-    <Link href={href} className="block group" aria-label={title} prefetch>
+    <Link
+      href={href}
+      className="block group"
+      aria-label={title}
+      target="_blank"
+      rel="noopener noreferrer"
+      prefetch={false}
+    >
       <article
         className="
           card h-full rounded-2xl border p-5 md:p-6
