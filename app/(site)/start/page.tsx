@@ -48,7 +48,7 @@ function pickChips(extras: (string | undefined)[], tags?: string[], max = 2) {
 }
 
 // For the banner CTA
-const LINKEDIN_URL = process.env.NEXT_PUBLIC_LINKEDIN_URL ?? "https://www.linkedin.com/in/";
+const LINKEDIN_URL = process.env.NEXT_PUBLIC_LINKEDIN_URL ?? "https://www.linkedin.com/in/heyosj";
 
 export default async function StartPage({
   searchParams,
