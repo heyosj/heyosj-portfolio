@@ -1,0 +1,116 @@
+---
+title: "Azure + Colima: Forensics Setup Notes with Cheat Sheet"
+description: "Notes on how Azure (crime scene) and Colima/Docker (toolbox) fit together, plus a minimal cheat sheet for daily commands and setup patterns."
+date: "2025-09-08"
+slug: "azure-colima-forensics"
+tags: ["cloud", "forensics", "azure", "docker", "setup", "cheatsheet"]
+eyebrow: "Cloud Sec Forensics"
+---
+
+# Notes: Azure + Colima Forensics Setup
+
+I’ve been trying to get my head around what cloud forensics looks like, especially in Azure. At first I was mixing up Docker, Colima, and VMs — didn’t know why I’d need them if I’m already in the cloud. Here’s how I sorted it out in my head.
+
+---
+
+## Azure = the crime scene
+
+- Incidents actually happen in Azure (VMs, identities, logs).
+- Evidence lives there: activity logs, NSG flow logs, VM snapshots (VHDs), maybe memory dumps.
+- The point is: Azure holds the data I need when something suspicious happens.
+
+---
+
+## Colima = my toolbox
+
+- Docker runs apps inside containers (self-contained, clean, throwaway).
+- Colima is what makes Docker work on my Mac (since macOS can’t do it natively).
+- This means I don’t have to clutter my laptop installing forensic tools. I just spin up a container, use it, then shut it down.
+
+---
+
+## Containers vs VMs (the way it clicked for me)
+
+- VM = a whole house (heavy, its own OS).
+- Container = just an apartment (lighter, shares the foundation).
+- Colima = the property manager that makes apartments possible on macOS.
+
+That analogy helped me finally stop confusing them.
+
+---
+
+## Simple workflow (how I picture it)
+
+1. Something bad happens in Azure → export artifacts.
+2. On my Mac, start Colima → run a container with the tools I need.
+3. Analyze the evidence locally (logs, snapshots, memory, network traffic).
+
+So basically:
+
+👉 Azure = crime scene  
+👉 Colima/Docker = my portable lab bench  
+
+---
+
+## Technical Steps (Baseline Setup)
+
+1. **Create an Azure account**  
+   - Sign up at [azure.com/free](https://azure.com/free).  
+   - If you’re on school or work SSO, use a personal email so you can manage your own subscription.  
+
+2. **Set a budget / spending cap**  
+   - In the Azure Portal: `Cost Management + Billing → Budgets`.  
+   - Set alerts so you don’t burn through free credits or overspend.  
+
+3. **Install Colima (macOS/Linux)**  
+   ```bash
+   brew install colima
+   ```  
+
+4. **Start Colima**  
+   ```bash
+   colima start
+   ```  
+
+5. **Test Docker is working**  
+   ```bash
+   docker run hello-world
+   ```  
+
+---
+
+## Cheat Sheet (for daily use)
+
+**Colima (engine)**  
+```bash
+colima start       # start the Docker VM
+colima stop        # stop it to save resources
+colima status      # check if it's running
+```
+
+**Containers**  
+```bash
+docker run hello-world          # run a quick test
+docker run -it ubuntu bash      # drop into a container shell
+docker ps                       # list running containers
+docker stop <id>                # stop a container
+docker rm <id>                  # remove a container
+```
+
+**Cleanup**  
+```bash
+docker system prune             # clean up unused stuff
+```
+
+---
+
+## Notes on Tooling
+
+- You don’t reinstall tools every time.  
+- **Images** = reusable toolboxes.  
+- **Containers** = temporary work sessions.  
+- Later I can either:  
+  - Pull tool-specific images (fast start), or  
+  - Build my own `forensics:baseline` image (uniform + reusable).  
+
+That's my baseline mental model + quick reference for now.
