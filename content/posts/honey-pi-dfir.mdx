@@ -1,0 +1,119 @@
+---
+title: "Honey-Pi Dispatch: Turning a Spare Raspberry Pi into a Cloud DFIR Beacon"
+description: "Why I turned an idle Raspberry Pi into a honeypot that ships to Azure Log Analytics, plus the tiny set of commands/aliases I’ll actually use."
+date: "2025-09-13"
+updated: "2025-09-13"
+slug: "honey-pi-dfir"
+tags: ["dispatch", "dfir", "azure", "raspberry-pi", "honeypot", "networking"]
+eyebrow: "DFIR Notes"
+---
+
+# Notes: Raspberry Pi → DFIR Beacon
+
+I had a Raspberry Pi sitting around. After standing up my own Azure environment, I wanted to learn **cloud DFIR** for real—not just read docs. But I needed **real logs** to investigate. So I turned the Pi into a small, safe **honeypot** that forwards events to **Azure Log Analytics**. It’s not a blocker or AV; it’s a **beacon** that lures bots and curiosity on my network so I can practice triage with real signals.
+
+Also: this was my **first time using shell aliases**. I ended up enjoying them—small quality-of-life wins that make the workflow feel like one command instead of five.
+
+---
+
+## Azure = the investigation hub
+
+- I use **Log Analytics** as the place where events land (custom table: `OpenCanary_CL`).  
+- **KQL** is where I sanity-check and explore: latest hits, sources, services.  
+- Optional alerts give me a nudge when something spikes.
+
+---
+
+## Pi = the beacon (not inline defense)
+
+- **OpenCanary** runs on the Pi and exposes fake **SSH (2222)**, **Telnet (2323)**, and **HTTP (8080)**.  
+- **Fluent Bit** forwards `/var/tmp/opencanary.log` to my workspace.  
+- This is for learning and telemetry. It does **not** replace endpoint AV or a firewall.  
+- Safety note: never type real passwords into the honeypot—credentials are logged in clear text by design.
+
+---
+
+## The small thing I actually learned (aliases)
+
+I mapped `bluebox → bluebox.local` with an SSH config so my aliases could stay clean:
+
+```sshconfig
+Host bluebox
+  HostName bluebox.local
+  User osj
+  ServerAliveInterval 30
+  ServerAliveCountMax 2
+  UseKeychain yes
+  AddKeysToAgent yes
+#  IdentityFile ~/.ssh/id_ed25519  # uncomment if you use a key
+```
+
+And then I made a few **remote aliases** on my Mac that operate the Pi with one-liners:
+
+```bash
+# ~/.zshrc
+alias pi-canary-up='ssh bluebox "OPENCANARY_CONFIG=/etc/opencanaryd/opencanary.conf ~/venvs/honey/bin/twistd -y ~/venvs/honey/bin/opencanary.tac --pidfile /var/tmp/opencanary.pid --logfile /var/tmp/opencanary.twistd.log"'
+alias pi-canary-down='ssh bluebox "kill \$(cat /var/tmp/opencanary.pid) 2>/dev/null || pkill -f twistd.*opencanary"'
+alias pi-canary-ss='ssh bluebox "sudo ss -tulpen | egrep \":(2222|2323|8080)[[:space:]]\" || echo no listeners"'
+alias pi-canary-tail='ssh bluebox "tail -n 50 /var/tmp/opencanary.log"'
+alias pi-canary-journal='ssh bluebox "sudo journalctl -u fluent-bit -n 20 --no-pager"'
+```
+
+Now my muscle-memory is simple: `pi-canary-up`, `pi-canary-ss`, `pi-canary-tail`.
+
+---
+
+## Simple flow (how I picture it)
+
+1. Pi runs OpenCanary → writes events to `/var/tmp/opencanary.log`.  
+2. Fluent Bit ships to Azure (`OpenCanary_CL`).  
+3. I probe from my laptop (fake creds), then practice **KQL** triage in Logs.  
+4. (Optional) Router port-forwards bring Internet scanners into view.
+
+---
+
+## Minimal KQL (sanity + quick views)
+
+**Sanity (last 15 min):**
+```kusto
+OpenCanary_CL
+| where TimeGenerated > ago(15m)
+| project TimeGenerated, src_host_s, dst_port_d, logtype_d
+| order by TimeGenerated desc
+```
+
+**Top sources (24h):**
+```kusto
+OpenCanary_CL
+| where TimeGenerated > ago(24h)
+| summarize hits=count() by src_host_s
+| top 20 by hits
+```
+
+**Top services (24h):**
+```kusto
+OpenCanary_CL
+| where TimeGenerated > ago(24h)
+| extend service = case(dst_port_d==2222,"ssh", dst_port_d==2323,"telnet", dst_port_d==8080,"http","other")
+| summarize hits=count() by service
+| order by hits desc
+```
+
+**Spike alert (starter, 10 min window):**
+```kusto
+OpenCanary_CL
+| where TimeGenerated > ago(10m)
+| extend src24 = strcat(extract(@"^\d+\.\d+\.\d+", 0, src_host_s), ".0/24")
+| summarize hits=count() by src24
+| where hits >= 10
+```
+
+---
+> **Technicals:** If you care more about the technical write-up feel free to check it out [here](https://www.heyosj.com/playbooks/honey-pi)
+
+
+## What’s next (lightweight roadmap)
+
+- **Port-forward** 22→2222, 23→2323, 80→8080 to the Pi’s IP to see Internet noise.  
+- Add one or two **Log Alerts** (e.g., repeated SSH attempts).  
+- Later, layer in **Suricata** to practice IDS-style detections and enrich timelines.
