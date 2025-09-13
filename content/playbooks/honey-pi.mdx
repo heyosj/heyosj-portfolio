@@ -1,0 +1,214 @@
+---
+title: "Honey‑Pi: Home Honeypot → Azure Log Analytics"
+date: "2025-09-13"
+updated: "2025-09-13"
+slug: "honey-pi"
+description: "Spin up a Raspberry Pi honeypot (OpenCanary), ship events to Azure Log Analytics with Fluent Bit, and verify it end‑to‑end."
+tags:
+  - playbooks
+  - security
+  - homelab
+  - networking
+  - azure
+  - raspberry-pi
+order: 999
+pinned: false
+repo: https://github.com/thinkst/opencanary
+favorite: true
+---
+
+> **Scenario:** I want a safe at‑home honeypot that logs real probes (SSH/Telnet/HTTP) into my Azure Log Analytics workspace—without touching my main machines.
+
+## TL;DR
+1) **Run OpenCanary on the Pi** (in a venv), listening on high ports: `2222/2323/8080`.  
+2) **Ship `/var/tmp/opencanary.log` to Azure** via Fluent Bit’s `azure` output as `OpenCanary`.  
+3) **Verify with KQL**: `OpenCanary_CL | take 5`.  
+*(Optional)* Add router port‑forwards `22→2222`, `23→2323`, `80→8080` to catch Internet scanners.
+
+---
+
+## Prereqs
+- Raspberry Pi (Pi 4/5 recommended) with Raspberry Pi OS (Bookworm OK)
+- Python venv with OpenCanary installed at `~/venvs/honey`
+- Azure Log Analytics **Workspace ID** and **Primary Key**
+
+```bash
+# Create venv + install (if needed)
+sudo apt update && sudo apt install -y python3-full python3-venv python3-pip jq
+python3 -m venv ~/venvs/honey
+source ~/venvs/honey/bin/activate
+pip install --upgrade pip wheel setuptools
+pip install opencanary
+```
+
+---
+
+## OpenCanary config (final, minimal)
+**Path:** `/etc/opencanaryd/opencanary.conf`
+
+```json
+{
+  "device.node_id": "honey-pi",
+
+  "ssh.enabled": true,   "ssh.port": 2222,
+  "telnet.enabled": true,"telnet.port": 2323,
+  "http.enabled": true,  "http.port": 8080,
+  "ftp.enabled": false,
+
+  "logger": {
+    "class": "PyLogger",
+    "kwargs": {
+      "formatters": { "plain": { "format": "%(message)s" } },
+      "handlers": {
+        "file": {
+          "class": "logging.handlers.RotatingFileHandler",
+          "filename": "/var/tmp/opencanary.log",
+          "maxBytes": 1048576,
+          "backupCount": 3,
+          "formatter": "plain"
+        }
+      }
+    }
+  }
+}
+```
+
+Validate JSON:
+```bash
+sudo jq . /etc/opencanaryd/opencanary.conf && echo "JSON OK"
+```
+
+---
+
+## Start OpenCanary
+
+### Foreground (debug)
+```bash
+export OPENCANARY_CONFIG=/etc/opencanaryd/opencanary.conf
+~/venvs/honey/bin/twistd -ny ~/venvs/honey/bin/opencanary.tac
+```
+You should see: `starting on 8080`, `starting on 2222`, `starting on 2323`.
+
+### Background (daemonize)
+```bash
+export OPENCANARY_CONFIG=/etc/opencanaryd/opencanary.conf
+~/venvs/honey/bin/twistd -y ~/venvs/honey/bin/opencanary.tac   --pidfile /var/tmp/opencanary.pid --logfile /var/tmp/opencanary.twistd.log
+
+# Listeners?
+sudo ss -tulpen | egrep ':(2222|2323|8080)\s' || echo "no listeners"
+```
+
+*(Optional) Start at boot:*
+```bash
+( crontab -l 2>/dev/null; echo '@reboot OPENCANARY_CONFIG=/etc/opencanaryd/opencanary.conf /home/osj/venvs/honey/bin/twistd -y /home/osj/venvs/honey/bin/opencanary.tac --pidfile /var/tmp/opencanary.pid --logfile /var/tmp/opencanary.twistd.log' ) | crontab -
+```
+
+**Stop / Restart**
+```bash
+# stop
+kill "$(cat /var/tmp/opencanary.pid)" 2>/dev/null || pkill -f 'twistd.*opencanary'
+
+# restart
+kill "$(cat /var/tmp/opencanary.pid)" 2>/dev/null || pkill -f 'twistd.*opencanary'
+export OPENCANARY_CONFIG=/etc/opencanaryd/opencanary.conf
+~/venvs/honey/bin/twistd -y ~/venvs/honey/bin/opencanary.tac   --pidfile /var/tmp/opencanary.pid --logfile /var/tmp/opencanary.twistd.log
+```
+
+---
+
+## Ship to Azure with Fluent Bit
+**Install + config**
+```bash
+sudo apt update && sudo apt install -y fluent-bit
+sudo tee /etc/fluent-bit/fluent-bit.conf >/dev/null <<'CONF'
+[SERVICE]
+    Flush        5
+    Daemon       Off
+    Log_Level    info
+    Parsers_File /etc/fluent-bit/parsers.conf
+    Parsers_File /etc/fluent-bit/parsers-json.conf
+
+[INPUT]
+    Name   tail
+    Path   /var/tmp/opencanary.log
+    Tag    opencanary
+    Parser json
+
+[OUTPUT]
+    Name        azure
+    Match       opencanary
+    Customer_ID <YOUR_WORKSPACE_ID>
+    Shared_Key  <YOUR_PRIMARY_KEY>
+    Log_Type    OpenCanary
+CONF
+
+sudo systemctl enable --now fluent-bit
+sudo journalctl -u fluent-bit -f    # look for HTTP status=200
+```
+
+---
+
+## Verify end‑to‑end
+**From your laptop (replace `<PI_IP>`, don’t use `.local` if flaky):**
+```bash
+curl http://<PI_IP>:8080/robots.txt
+nc -vz <PI_IP> 2323
+ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -p 2222 test@<PI_IP>
+```
+> **Security note:** Use **fake** passwords. OpenCanary logs creds in clear text (for analysis).
+
+**In Log Analytics (KQL)**
+```kusto
+OpenCanary_CL
+| where TimeGenerated > ago(15m)
+| project TimeGenerated, src_host_s, dst_port_d, logtype_d
+| order by TimeGenerated desc
+```
+
+---
+
+## Optional: router port‑forwards
+Forward to the Pi’s LAN IP:
+- `22 → 2222`
+- `23 → 2323`
+- `80 → 8080`
+
+You’ll start seeing global scanners hit your honeypot.
+
+---
+
+## Troubleshooting quick hits
+```bash
+# JSON config valid?
+sudo jq . /etc/opencanaryd/opencanary.conf
+
+# Run foreground to see startup errors
+export OPENCANARY_CONFIG=/etc/opencanaryd/opencanary.conf
+~/venvs/honey/bin/twistd -ny ~/venvs/honey/bin/opencanary.tac
+
+# Fluent Bit health
+sudo systemctl status fluent-bit --no-pager
+sudo journalctl -u fluent-bit -n 20 --no-pager
+
+# If UFW is enabled, allow LAN
+sudo ufw allow from 10.0.0.0/24 to any port 8080 proto tcp
+sudo ufw allow from 10.0.0.0/24 to any port 2323 proto tcp
+sudo ufw allow from 10.0.0.0/24 to any port 2222 proto tcp
+```
+
+---
+
+## Make it muscle‑memory (aliases)
+```bash
+alias canary-up='export OPENCANARY_CONFIG=/etc/opencanaryd/opencanary.conf; ~/venvs/honey/bin/twistd -y ~/venvs/honey/bin/opencanary.tac --pidfile /var/tmp/opencanary.pid --logfile /var/tmp/opencanary.twistd.log'
+alias canary-down='kill $(cat /var/tmp/opencanary.pid) 2>/dev/null || pkill -f "twistd.*opencanary"'
+alias canary-ss='sudo ss -tulpen | egrep ":(2222|2323|8080)\s" || echo "no listeners"'
+```
+
+---
+
+## Definition of done
+- Listeners on **2222/2323/8080**
+- Fresh rows in **`OpenCanary_CL`** when probed
+- Background start at boot configured
+
