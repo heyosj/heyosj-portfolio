@@ -1,0 +1,334 @@
+---
+title: "Azure Lab Part 2: ForensicsVM & Linux Logging"
+description: "Building a tiny Ubuntu ForensicsVM, locking down SSH, and wiring Syslog into Log Analytics with Azure Monitor Agent. Part 2 of my Azure lab series."
+date: "2025-12-02"
+slug: "azure-lab-part-two-forensicsvm"
+tags: ["azure", "az-500", "forensics", "home lab", "log analytics"]
+order: 2
+repo: ""
+---
+
+> **TL;DR** — I dropped a tiny Ubuntu VM (`ForensicsVM`) into `forensics-lab-rg`, fixed the insecure SSH rule, and wired Syslog (`auth` / `authpriv`) into a Log Analytics workspace via **Azure Monitor Agent + Data Collection Rule**. Now I can generate SSH auth noise on demand and hunt it with KQL.
+
+# Azure Lab Part 2: ForensicsVM & Linux Logging
+
+In [Part 1](/dispatch/azure-lab-environment-structure), I set up the **Azure hierarchy**:
+
+- Single tenant + subscription
+- Two resource groups: `az500-study-rg` and `forensics-lab-rg`
+- Lab users with scoped Entra + RBAC roles
+
+This part is where `forensics-lab-rg` actually gets something interesting: a **small Ubuntu VM** that I can use as a **forensics / auth-log generator**, with logs shipped into **Log Analytics**.
+
+---
+
+## 1. ForensicsVM: Build & First Login
+
+### VM config
+
+- **Name**: `ForensicsVM`
+- **Resource Group**: `forensics-lab-rg`
+- **Image**: `Ubuntu Server 24.04 LTS` (Gen2, free tier eligible)
+- **Size**: `Standard_B1ls` (0.5 GB RAM, free-tier sized)
+- **Auth**: Username + **password** (simple for lab, not production)
+
+Once the VM finished deploying, I grabbed the **public IP** from the VM blade and connected over SSH.
+
+### SSH into the VM
+
+Because this is Linux, it’s **SSH**, not RDP:
+
+```bash
+ssh <username>@<Public-IP>
+```
+
+Concrete example:
+
+```bash
+ssh localadmin@20.51.xx.xx
+```
+
+A successful login drops me at a prompt like:
+
+```bash
+localadmin@ForensicsVM:~$
+```
+
+### Basic updates & tools
+
+First thing after login: updates + a few basics.
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install htop curl wget unzip -y
+```
+
+At this point the VM is usable, but it started life with an **insecure SSH rule**.
+
+---
+
+## 2. Fixing the Insecure SSH Rule
+
+When the VM was created, the NSG inbound rule allowed:
+
+- **Source**: Any
+- **Port**: `22/TCP` (SSH)
+- **Action**: Allow
+
+That means **anyone** on the internet can try to brute-force SSH. For a public lab box, that’s a good way to fill your logs with garbage and maybe get owned.
+
+### NSG rule: lock SSH to my IP
+
+I fixed it by tightening the inbound rule to my public IP:
+
+- **Source**: IP Addresses
+- **Source IP ranges**: `x.x.x.x/32` (my current public IP)
+- **Destination port**: `22`
+- **Protocol**: TCP
+- **Action**: Allow
+
+Now SSH only works **from my IP**. If my ISP changes my IP or I move locations, I just update this rule.
+
+> 💡 **Note to future me:** After stopping/deallocating the VM, the **public IP may change** (if it’s not static). Make sure both the NSG rule and your SSH command use the current IP.
+
+---
+
+## 3. Wiring Logs into Log Analytics (Linux VM → AMA → Workspace)
+
+With SSH locked down, the next goal was:  
+**Get auth/syslog from `ForensicsVM` into Log Analytics** so I can hunt later.
+
+### What I built
+
+- **Workspace**: `analytics1` (region: `eastus`)
+- **Data Collection Rule (DCR)**: `ForensicsVM-DCR`
+  - Platform: **Linux**
+  - Data source: **Syslog**
+  - Facilities: `LOG_AUTH`, `LOG_AUTHPRIV`
+  - Min level: `LOG_INFO`
+  - Destination: `analytics1`
+  - **Resource attached**: `ForensicsVM`
+- **Agent**: **Azure Monitor Agent (AMA)**  
+  This installed automatically when I associated the DCR with the VM.
+- **NSG**: SSH still locked to **my public IP** on `22/TCP` (no `Any`).
+
+### How I actually did it (short version)
+
+1. **Create workspace** → `analytics1` in `eastus`.
+2. In the workspace, go to **Agents** and choose **Azure Monitor agent**.
+3. Under **Virtual machines**, select `ForensicsVM` → **Connect**.
+4. In the wizard, create `ForensicsVM-DCR` with:
+   - **Linux** as the platform  
+   - **Syslog** data source  
+   - Facilities: `LOG_AUTH`, `LOG_AUTHPRIV`  
+   - Min level: `LOG_INFO`  
+   - Destination: `analytics1`  
+   - Scope: `ForensicsVM`
+
+The wizard wires everything up: it creates the DCR, associates it with the VM, and pushes the **AMA** down to the host. No workspace keys necessary.
+
+> ⚠️ If the portal ever asks you for **workspace keys**, you’re in the old **OMS agent** flow. Back out and use the Azure Monitor Agent path instead.
+
+---
+
+## 4. Tiny VM Sizing: B1ls Pain & Workarounds
+
+I chose **`B1ls`** because it’s cheap and free-tier friendly, but:
+
+- **0.5 GB RAM** is **tight**.
+- SSH can feel sluggish or even timeout, especially right after boot or during updates.
+
+Two mitigations that helped:
+
+### Option A: Resize up (temporarily)
+
+If the VM is too painful to use:
+
+```bash
+# deallocate first
+az vm deallocate -g forensics-lab-rg -n ForensicsVM
+
+# bump to Standard_B1s (1 GB RAM)
+az vm resize -g forensics-lab-rg -n ForensicsVM --size Standard_B1s
+
+# start again
+az vm start -g forensics-lab-rg -n ForensicsVM
+```
+
+You can always resize back down later if cost matters and performance is “good enough.”
+
+### Option B: Add 1 GB swap
+
+If you want to stay on **B1ls** but give it a little breathing room, add swap:
+
+```bash
+sudo fallocate -l 1G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+sudo swapon -a
+```
+
+This doesn’t replace real RAM, but it makes the box noticeably less miserable under light load.
+
+---
+
+## 5. Generate & Verify Logs
+
+Once AMA + DCR were in place, I wanted to confirm:
+
+1. **Agent is healthy** on the VM.
+2. **Heartbeat** is reaching the workspace.
+3. **Syslog lines** from `auth` / `authpriv` are landing in `Syslog`.
+
+### On the VM
+
+Check AMA service + its logs:
+
+```bash
+sudo systemctl status azuremonitoragent --no-pager
+sudo journalctl -u azuremonitoragent -n 50 --no-pager
+```
+
+Generate some test Syslog lines:
+
+```bash
+logger -p auth.info     "AMA test auth.info $(date)"
+logger -p authpriv.info "AMA test authpriv.info $(date)"
+```
+
+See them locally:
+
+```bash
+sudo tail -n 30 /var/log/auth.log
+```
+
+If they show up locally, the VM side is doing its job.
+
+### In the workspace (KQL)
+
+**1. Is the agent talking?**
+
+```kusto
+Heartbeat
+| where TimeGenerated > ago(2h)
+| order by TimeGenerated desc
+| take 5
+```
+
+If you see recent rows from `ForensicsVM`, AMA is alive.
+
+**2. Did my test lines land?**
+
+```kusto
+Syslog
+| where TimeGenerated > ago(2h)
+| where SyslogMessage has "AMA test"
+| project TimeGenerated, Computer, Facility, SeverityLevel, SyslogMessage
+| order by TimeGenerated desc
+```
+
+You should see the strings you logged with `logger`.
+
+**3. SSH auth noise (for future hunting)**
+
+```kusto
+Syslog
+| where TimeGenerated > ago(2h)
+| where Facility in ("auth", "authpriv")
+| project TimeGenerated, Computer, Facility, SyslogMessage
+| order by TimeGenerated desc
+```
+
+This becomes the base for SSH-focused detections and hunting queries later on.
+
+---
+
+## 6. Azure CLI Cheatsheet (Things I Actually Use)
+
+Most of the time I manage this VM from my Mac with a handful of commands.
+
+### Login + pick the right subscription
+
+```bash
+az login
+az account list -o table
+az account set --subscription "Azure subscription 1"
+az account show -o table
+```
+
+### Check VM state + public IP quickly
+
+```bash
+az vm show -d -g forensics-lab-rg -n ForensicsVM   --query "{state:powerState,ip:publicIps}" -o tsv
+
+az vm list-ip-addresses -g forensics-lab-rg -n ForensicsVM -o table
+```
+
+### Start / Stop / Deallocate
+
+```bash
+az vm start       -g forensics-lab-rg -n ForensicsVM
+az vm stop        -g forensics-lab-rg -n ForensicsVM
+az vm deallocate  -g forensics-lab-rg -n ForensicsVM
+```
+
+### SSH basics
+
+```bash
+ssh <username>@<IP>
+exit   # or Ctrl+D
+```
+
+### Quick “what’s my IP” (for NSG rules)
+
+```bash
+curl ifconfig.me
+```
+
+### Check SSH port from my Mac
+
+```bash
+# replace <IP> with the VM public IP
+nc -vz <IP> 22
+
+# or see verbose SSH attempt
+ssh -vvv <username>@<IP> -o ConnectTimeout=10
+```
+
+---
+
+## 7. Things That Tripped Me Up (Notes to Future Me)
+
+A few small gotchas that are easy to forget:
+
+- **DCRs aren’t under the VM blade.**  
+  Easiest path: go to the **workspace**, then **Agents** → **Azure Monitor agent** → **Connect** the VM. That creates + associates the DCR and installs AMA.
+- If you see prompts for **workspace keys**, you’re trying to use the **old OMS agent**. That’s not what you want for new labs.
+- If `Heartbeat` is present but `Syslog` is empty:
+  - Confirm the DCR is set to **Linux + Syslog**.
+  - Confirm facilities include `auth` / `authpriv` and level is `INFO` or lower.
+  - Confirm `ForensicsVM` is actually associated to that DCR.
+- After **deallocate/start**, the VM’s **public IP may change** unless you configured a static IP. Update:
+  - The NSG rule’s source IP (if you locked it to your previous IP).
+  - Your SSH command and any CLI scripts that assume an old IP.
+
+---
+
+## 8. Status & Next Steps
+
+Right now, the forensics side of the lab looks like this:
+
+- `ForensicsVM` is **running Ubuntu 24.04** in `forensics-lab-rg`.
+- SSH is **locked down** to my IP via NSG.
+- **Azure Monitor Agent** is installed and healthy.
+- `ForensicsVM-DCR` is pushing `auth` / `authpriv` Syslog into `analytics1`.
+- I can **generate SSH noise** and immediately **hunt it in KQL**.
+
+Next up in this series will be:
+
+- Adding **more lab VMs** (attacker + victim roles).
+- Building **playbooks and detections** around SSH abuse, lateral movement, and persistence.
+- Carving out a **forensics workflow** (evidence storage, timelines, and case-style writeups).
+
+If Part 1 was the **skeleton** of the environment, this is the first **nerve ending**—real logs from a real box that I control end-to-end.
