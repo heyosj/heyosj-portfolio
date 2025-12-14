@@ -212,7 +212,7 @@ curl -sS -I --max-time 10 "https://www.shoecatphone.com/<path>" | sed -n '1,40p'
 **Gaps:**
 - Should have pulled full `Received:` header chain for complete mail flow
 - Could have checked VirusTotal for historical context on IP/domain
-- Missed opportunity to automate defanging (wrote it manually)
+- Automate extraction + defang + IOC summary in one script.
 
 **Learned:**
 - `/qs=` tokens are high-signal detection markers
