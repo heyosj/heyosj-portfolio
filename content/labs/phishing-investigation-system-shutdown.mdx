@@ -248,7 +248,7 @@ grep -nE '^(Authentication-Results|DKIM-Signature|Received):' msg1.eml | head -n
 
 # extract + defang URLs
 grep -Eo '(https?://[^"<> ]+)' msg1_body.html | sort -u > urls_raw.txt
-sed -E 's#https?://#hxxps://#g; s/[.]/[.]/g' urls_raw.txt > urls_defanged.txt
+sed -E 's#https?://#hxxps://#g; s/\./[.]/g' urls_raw.txt > urls_defanged.txt
 
 # pull qs= tokens
 grep -RhoE '/qs=[^" ]+' msg1_body.html | sort -u
