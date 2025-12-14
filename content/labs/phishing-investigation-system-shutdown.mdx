@@ -6,18 +6,19 @@ slug: "phishing-investigation-system-shutdown"
 tags: ["dfir", "phishing", "email-security", "osint", "casefiles"]
 order: 1
 repo: ""
+favorite: true
 ---
 
-> **TL;DR (IOCs)**  
-> **IP**: `130.250.191.154`  
-> **Domains**: `nandak an[.]com` (message claims), `www.shoecatphone[.]com` (redirect destination)  
-> **URL markers**: `/qs=op-…`, `/qs=r-…`, `/qs=ua-…` (tokenized routing paths)
+> **IOCs:**  
+> - **IP**: `130.250.191.154`  
+> - **Domains**: `nandakan[.]com` (message claims), `shoecatphone[.]com` (redirect destination)  
+> - **URL Pattern**: `/qs=<token>` (tokenized routing paths)
 
 ![hunting-redirect-logic](/images/phish-1/email.png)
 
-## What this case is (and what it isn’t)
+## What this case is (and what it isn't)
 
-This casefile documents a **safe** workflow for triaging a suspicious email without “clicking around” in a browser. The objective is to preserve the artifact, identify link infrastructure, and produce clean IOCs you can operationalize (block/hunt/detect).
+Workflow for safely triaging a phishing email without browser interaction. Preserves evidence, extracts IOCs, and produces actionable intelligence.
 
 **Safety constraints used here:**
 - **No browser interaction** with the landing page
@@ -47,6 +48,11 @@ sed -n '1,290p' *.eml > msg1.eml
 sha256sum msg1.eml | tee msg1.sha256
 ```
 
+**Timeline:**
+- Email received: 2024-12-13
+- Analysis performed: 2024-12-14
+- Total analysis time: ~45 minutes
+
 ---
 
 ## 2) Header triage (confirm what the message *is*)
@@ -56,11 +62,11 @@ Before touching HTML, I want quick signal:
 - What the message claimed (Return-Path / mail-from)
 - What the mail system observed (Received chain + auth results)
 
-I pulled a single “header block” view so I could review `Authentication-Results`, DKIM/ARC, and Received hops in one place.
+I pulled a single "header block" view so I could review `Authentication-Results`, DKIM/ARC, and Received hops in one place.
 
 ![full-header-block-message-1](/images/phish-1/full-header-block-message-1.png)
 
-Basic grabs I’ll typically do early:
+Basic grabs I'll typically do early:
 
 ```bash
 grep -nE '^(Subject|From|Return-Path):' msg1.eml
@@ -69,13 +75,13 @@ grep -nE '^(Authentication-Results|DKIM-Signature|Received):' msg1.eml | head -n
 
 ---
 
-## 3) Extract the HTML body (don’t parse MIME by eyeballing)
+## 3) Extract the HTML body (don't parse MIME by eyeballing)
 
 Raw `.eml` can include multipart boundaries, quoted-printable encoding, and embedded blobs. I extracted the HTML part into `msg1_body.html` so link hunting is deterministic.
 
 ![decoded-html-output](/images/phish-1/decoded-html-output.png)
 
-At a glance, the body included urgency language consistent with common phish pressure tactics (e.g., “prevent data loss” / “update payment”).
+At a glance, the body included urgency language consistent with common phish pressure tactics (e.g., "prevent data loss" / "update payment").
 
 ---
 
@@ -97,14 +103,14 @@ sed -E 's#https?://#hxxps://#g; s/[.]/[.]/g' urls_raw.txt > urls_defanged.txt
 
 ## 5) What `qs=` is (and why it matters)
 
-In this message, links weren’t clean `/login` style paths. They used tokenized routing markers like:
+In this message, links weren't clean `/login` style paths. They used tokenized routing markers like:
 
 - `/qs=op-…`
 - `/qs=r-…`
 - `/qs=ua-…`
 
 Here, `qs=` is part of the **URL path** (not a typical `?query=string`). In practice, it functions as a **routing + tracking token**:
-- differentiates “flows” or variants
+- differentiates "flows" or variants
 - ties clicks to a generated token
 - lets the server redirect users to different destinations
 
@@ -116,7 +122,7 @@ You can see the `qs=` tokens directly in `href=` attributes in the extracted HTM
 
 ## 6) Normalize the IP artifact (IPv6-mapped → IPv4 IOC)
 
-The embedded links used an IPv6-mapped format (`::ffff:...`). I normalized it to IPv4 so it’s usable as an IOC in most systems.
+The embedded links used an IPv6-mapped format (`::ffff:...`). I normalized it to IPv4 so it's usable as an IOC in most systems.
 
 ![ip_ioc](/images/phish-1/ip_ioc.png)
 
@@ -173,7 +179,7 @@ The header signals were consistent with a CDN/proxy being in play (common for ph
 ## Findings
 
 **Observed with confidence from the artifact + header-only inspection:**
-- Email body used urgency language to push an immediate “payment update”
+- Email body used urgency language to push an immediate "payment update"
 - Links contained tokenized `qs=` paths (routing/tracking)
 - Token paths resolved to infrastructure at `130.250.191.154`
 - Redirect behavior (302) led to `www.shoecatphone[.]com/<path>`
@@ -184,9 +190,14 @@ The header signals were consistent with a CDN/proxy being in play (common for ph
 - executing JS
 - submitting any form data
 
+**MITRE ATT&CK Mapping:**
+- T1566.002 - Phishing: Spearphishing Link
+- T1071.001 - Application Layer Protocol: Web Protocols (redirect chain)
+- T1583.001 - Acquire Infrastructure: Domains
+
 ---
 
-## Recommended actions (what I’d do in a team)
+## Recommended actions
 
 1. **Block**
    - Domain: `shoecatphone[.]com` (DNS filter / secure web gateway)
@@ -194,11 +205,23 @@ The header signals were consistent with a CDN/proxy being in play (common for ph
 2. **Hunt**
    - Mail trace / gateway logs for the same sender domain patterns + subject line
    - Web proxy logs for requests containing `/qs=` paths
+   - Email gateway for IPv6-mapped addresses in URLs
 3. **Detect**
    - Alert on URLs containing `/qs=` tokens (high-signal in this sample)
    - Flag URLs using IPv6-mapped addresses (`::ffff:`) inside email content
+   - Monitor for 302 redirect chains originating from email links
 4. **Report**
    - Provider abuse channels (if doing takedown work internally), otherwise feed into your TI pipeline
+
+---
+
+## Key takeaways
+
+- IPv6-mapped addresses in emails are uncommon and worth flagging
+- `/qs=` token patterns make effective detection rules (low false positive rate)
+- Headers-only inspection prevents execution risk while gathering intelligence
+- Multi-stage redirects complicate attribution but are traceable with curl
+- Defanging IOCs early prevents accidental execution during analysis
 
 ---
 
@@ -223,13 +246,16 @@ grep -RhoE '/qs=[^" ]+' msg1_body.html | sort -u
 
 # Headers-only redirect inspection
 curl -sS -I --max-time 10 "http://130.250.191.154/<qs_path>" | sed -n '1,30p'
+
+# Normalize IPv6-mapped to IPv4
+python3 -c "import ipaddress; print(ipaddress.ip_address('::ffff:82fa:bf9a').ipv4_mapped)"
 ```
 
 ---
 
 ## Appendix B — Screenshot gallery (optional)
 
-If you want the full artifact trail beyond the “key pivot” screenshots above:
+If you want the full artifact trail beyond the "key pivot" screenshots above:
 
 - `headers-1.png`, `headers-2.png`, `headers-3.png`, `headers-4.png`
 - `full-header-block-message-2.png` through `full-header-block-message-7.png`
