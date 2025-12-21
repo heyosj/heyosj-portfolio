@@ -14,6 +14,11 @@
   --accent:  #c77d54;
   --accent-600:#a9653e;
   --hover-accent:#f7e8c9;
+    /* light mode */
+  --latest-badge-bg: #fff4b8;      /* soft pastel yellow */
+  --latest-badge-fg: #3b2f00;      /* readable on yellow */
+  --latest-badge-border: rgba(60, 47, 0, 0.22);
+  --latest-badge-glow: rgba(255, 214, 88, 0.35);
 }
 
 html, body { height: 100%; }
@@ -127,6 +132,11 @@ a:hover { color: var(--accent-600); }
   --ink: #d1d1d1;         /* text */
   --subtext: #9a9a9a;
   --accent: #c77d54;      /* keep accent */
+    /* dark mode */
+  --latest-badge-bg: #ffe08a;      /* brighter pastel yellow */
+  --latest-badge-fg: #2b2100;
+  --latest-badge-border: rgba(255, 224, 138, 0.40);
+  --latest-badge-glow: rgba(255, 224, 138, 0.45);
 }
 
 ::selection { background: var(--accent, #c77d54); color: #fff; }

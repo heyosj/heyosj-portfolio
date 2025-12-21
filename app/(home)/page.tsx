@@ -1,10 +1,16 @@
 // app/(home)/page.tsx
 import Link from "next/link";
 import MailLink from "@/components/MailLink";
+import { getAllLabs } from "@/lib/labs";
 
 export const metadata = { title: "home" };
+export const runtime = "nodejs";
+export const revalidate = 0;
 
-export default function Home() {
+export default async function Home() {
+  const labs = await getAllLabs();
+  const latestLab = labs?.[0];
+
   return (
     <section className="space-y-8">
       <div className="card p-6 md:p-7">
@@ -22,7 +28,16 @@ export default function Home() {
         </p>
       </div>
 
-      {/* section cards */}
+      {latestLab ? (
+        <LatestSpotlight
+          kind="labs"
+          title={latestLab.title}
+          summary={latestLab.summary}
+          date={latestLab.date}
+          href={`/labs/${latestLab.slug}`}
+        />
+      ) : null}
+
       <div className="grid gap-4 md:grid-cols-3 items-stretch">
         <HomeCard
           href="/dispatch"
@@ -42,8 +57,7 @@ export default function Home() {
       </div>
 
       <p className="muted">
-        say hi: <MailLink />{" "}
-        •{" "}
+        say hi: <MailLink /> •{" "}
         <a
           className="underline"
           href="https://www.linkedin.com/in/heyosj"
@@ -65,15 +79,125 @@ export default function Home() {
   );
 }
 
-function HomeCard({
-  href,
+function LatestSpotlight({
+  kind,
   title,
-  blurb,
+  summary,
+  date,
+  href,
 }: {
-  href: string;
+  kind: "labs" | "dispatch" | "playbooks";
   title: string;
-  blurb: string;
+  summary?: string;
+  date: string;
+  href: string;
 }) {
+  return (
+    <Link href={href} className="block" aria-label={`open latest ${kind}: ${title}`} prefetch>
+      <div className="relative">
+        {/* subtle aura */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-2 rounded-[28px] blur-2xl opacity-30 transition hover:opacity-45"
+          style={{
+            background:
+              "radial-gradient(900px circle at 18% 10%, rgba(255,255,255,0.08), transparent 55%), radial-gradient(900px circle at 82% 35%, rgba(255,255,255,0.05), transparent 55%)",
+          }}
+        />
+
+        {/* border wrapper */}
+        <div
+          className="relative rounded-[26px] p-[1px] transition hover:-translate-y-[1px]"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06) 35%, rgba(255,255,255,0.12))",
+          }}
+        >
+          <div className="card relative overflow-hidden rounded-[25px] p-6 md:p-7">
+            {/* vignette / glass */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-70"
+              style={{
+                background:
+                  "radial-gradient(900px circle at 22% 0%, rgba(255,255,255,0.09), transparent 58%), radial-gradient(900px circle at 78% 120%, rgba(0,0,0,0.10), transparent 60%), linear-gradient(to bottom, rgba(255,255,255,0.03), transparent 40%, rgba(0,0,0,0.06))",
+              }}
+            />
+
+            {/* scanlines (subtle + thicker spacing) */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-[0.03]"
+              style={{
+                background:
+                  "repeating-linear-gradient(to bottom, rgba(255,255,255,0.55) 0px, rgba(255,255,255,0.55) 1px, transparent 1px, transparent 14px)",
+              }}
+            />
+
+            <div className="relative grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
+              <div>
+                <div className="flex flex-wrap items-center gap-2 text-xs tracking-wide uppercase">
+                  {/* badge: NO hover/transition */}
+                  <span
+                    className="inline-flex items-center rounded-full px-2.5 py-1 border select-none"
+                    style={{
+                      background: "var(--latest-badge-bg)",
+                      color: "var(--latest-badge-fg)",
+                      borderColor: "var(--latest-badge-border)",
+                      boxShadow: `0 0 0 1px rgba(0,0,0,0.06), 0 0px 20px var(--latest-badge-glow)`,
+                      transition: "none",
+                      filter: "none",
+                      opacity: 1,
+                      transform: "none",
+                      mixBlendMode: "normal",
+                      isolation: "isolate",
+                      willChange: "auto",
+                    }}
+                  >
+                    latest
+                  </span>
+
+                  <span className="muted">{kind}</span>
+                  <span className="muted">•</span>
+                  <span className="muted">{new Date(date).toLocaleDateString()}</span>
+                </div>
+
+                <h2 className="font-serif leading-[1.1] text-3xl md:text-4xl mt-3">
+                  <span className="underline underline-offset-[6px] decoration-[var(--border)]/0 hover:decoration-[var(--border)] transition">
+                    {title}
+                  </span>
+                </h2>
+
+                {summary ? <p className="muted mt-3 max-w-prose">{summary}</p> : null}
+              </div>
+
+              {/* affordance only; whole card is clickable */}
+              <div className="flex md:justify-end">
+                <span
+                  className="
+                    inline-flex items-center gap-2 rounded-md
+                    border border-[var(--border)]
+                    bg-[var(--card)]
+                    px-3 py-2 text-sm
+                    w-full justify-center md:w-auto
+                    opacity-90
+                  "
+                  aria-hidden
+                >
+                  open latest <span aria-hidden>→</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="relative mt-6 h-px w-full bg-[var(--border)] opacity-60" />
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function HomeCard({ href, title, blurb }: { href: string; title: string; blurb: string }) {
   return (
     <Link href={href} className="block h-full group" aria-label={`${title}: ${blurb}`}>
       <div className="card h-full rounded-2xl border p-5 md:p-6 transition hover:-translate-y-[1px] hover:shadow-sm flex flex-col">
