@@ -10,10 +10,9 @@ import React from "react";
 
 export type LabMeta = LabListItem;
 
-
 export type LabFrontmatter = {
   title: string;
-  date: string;             // ISO string
+  date: string; // ideally ISO, but we accept a few formats
   slug?: string;
   summary?: string;
   description?: string;
@@ -21,18 +20,19 @@ export type LabFrontmatter = {
   order?: number;
   published?: boolean;
   type?: "lab";
-  pinned?: boolean;         // NEW
+  pinned?: boolean;
+  updated?: string; // ✅ FIX
 };
 
 export type LabListItem = {
   slug: string;
   title: string;
   date: string;
-  order: number;
+  order?: number;
   summary: string;
   tags: string[];
   published: boolean;
-  pinned: boolean;          // NEW
+  pinned: boolean;
   updated?: string;
 };
 
@@ -70,6 +70,37 @@ export function readLabFrontmatter(filePath: string): Partial<LabFrontmatter> {
   return data as Partial<LabFrontmatter>;
 }
 
+/**
+ * Parse a date string into a stable UTC timestamp.
+ * Supports:
+ * - YYYY-MM-DD (preferred)
+ * - MM-DD-YYYY
+ * - M/D/YYYY
+ */
+function dateToTs(dateStr: string): number {
+  const s = String(dateStr || "").trim();
+  if (!s) return 0;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return Date.parse(`${s}T00:00:00Z`);
+
+  const mmddyyyy = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (mmddyyyy) {
+    const [, mm, dd, yyyy] = mmddyyyy;
+    const iso = `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+    return Date.parse(`${iso}T00:00:00Z`);
+  }
+
+  const mdyyyy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdyyyy) {
+    const [, m, d, y] = mdyyyy;
+    const iso = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    return Date.parse(`${iso}T00:00:00Z`);
+  }
+
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? t : 0;
+}
+
 /** theme-aware MDX component mapping (no TSX; uses React.createElement) */
 const mdxComponents = {
   h2: (props: any) =>
@@ -85,12 +116,25 @@ const mdxComponents = {
   blockquote: (props: any) =>
     React.createElement("blockquote", { className: "border-l-4 border-[var(--border)] pl-4 italic", ...props }),
   code: (props: any) =>
-    React.createElement("code", { className: "rounded-md border border-[var(--border)] bg-[var(--card)] px-1.5 py-0.5 text-[0.95em] text-[var(--ink)]", ...props }),
+    React.createElement("code", {
+      className:
+        "rounded-md border border-[var(--border)] bg-[var(--card)] px-1.5 py-0.5 text-[0.95em] text-[var(--ink)]",
+      ...props,
+    }),
   pre: (props: any) =>
-    React.createElement("pre", { className: "rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--ink)] overflow-x-auto p-4 text-sm", ...props }),
+    React.createElement("pre", {
+      className:
+        "rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--ink)] overflow-x-auto p-4 text-sm",
+      ...props,
+    }),
 };
 
-/** Return all published labs, sorted by (order ASC, date DESC). */
+/**
+ * Return all published labs.
+ * List order:
+ * - pinned first
+ * - then newest → oldest by date
+ */
 export async function getAllLabs(): Promise<LabListItem[]> {
   const files = getLabFilePaths();
 
@@ -99,25 +143,34 @@ export async function getAllLabs(): Promise<LabListItem[]> {
     const fm = readLabFrontmatter(full);
     const slug = (fm.slug && String(fm.slug)) || filenameToSlug(fname);
     const published = fm.published ?? true;
-    const order = typeof fm.order === "number" ? fm.order : 9999;
 
     return {
       slug,
       title: fm.title ?? slug,
       date: fm.date ?? "1970-01-01",
-      order,
+      order: typeof fm.order === "number" ? fm.order : undefined,
       summary: fm.summary ?? fm.description ?? "",
       tags: fm.tags ?? [],
       published,
       pinned: fm.pinned ?? false,
+      updated: fm.updated ? String(fm.updated) : undefined,
     };
   });
 
   return items
     .filter((it) => it.published)
     .sort((a, b) => {
-      if (a.order !== b.order) return a.order - b.order;
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+
+      const bt = dateToTs(b.date);
+      const at = dateToTs(a.date);
+      if (bt !== at) return bt - at;
+
+      const ao = typeof a.order === "number" ? a.order : Number.POSITIVE_INFINITY;
+      const bo = typeof b.order === "number" ? b.order : Number.POSITIVE_INFINITY;
+      if (ao !== bo) return ao - bo;
+
+      return a.title.localeCompare(b.title);
     });
 }
 
@@ -146,11 +199,9 @@ export async function getLabBySlug(slug: string): Promise<LabDoc | null> {
   const { content, data } = matter(source);
   const frontmatter = data as LabFrontmatter;
 
-  // --- read time (≈220 wpm) ---
   const words = content.trim().split(/\s+/).length;
   const readMin = Math.max(1, Math.ceil(words / 220));
 
-  // Compile MDX → React node (RSC-safe) WITH styled components
   const { content: mdx } = await compileMDX({
     source: content,
     components: mdxComponents,
@@ -158,7 +209,6 @@ export async function getLabBySlug(slug: string): Promise<LabDoc | null> {
       parseFrontmatter: false,
       mdxOptions: {
         remarkPlugins: [remarkGfm],
-        // IMPORTANT: no rehype-raw here (breaks RSC)
         rehypePlugins: [rehypeSlug],
       },
     },
@@ -175,10 +225,9 @@ export async function getLabBySlug(slug: string): Promise<LabDoc | null> {
   return { slug, frontmatter, mdx, meta };
 }
 
-// NEW: pinned helper
 export async function getPinnedLabs(limit = 1) {
   const all = await getAllLabs();
-  const pinned = all.filter(l => l.pinned);
+  const pinned = all.filter((l) => l.pinned);
   const source = pinned.length ? pinned : all;
   return source.slice(0, limit);
 }

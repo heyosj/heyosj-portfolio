@@ -5,12 +5,51 @@ import { getAllLabs } from "@/lib/labs";
 
 export const metadata = { title: "labs" };
 export const runtime = "nodejs";
-export const revalidate = 0; // ensure fresh read
+export const revalidate = 0;
+
+function toTs(dateStr: string): number {
+  // keep this in sync with lib/labs.ts logic (lightweight version for “latest”)
+  // supports: YYYY-MM-DD, MM-DD-YYYY, M/D/YYYY
+  const s = String(dateStr || "").trim();
+
+  // YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return Date.parse(`${s}T00:00:00Z`);
+
+  // MM-DD-YYYY
+  const mmddyyyy = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (mmddyyyy) {
+    const [, mm, dd, yyyy] = mmddyyyy;
+    const iso = `${yyyy}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+    return Date.parse(`${iso}T00:00:00Z`);
+  }
+
+  // M/D/YYYY
+  const mdyyyy = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdyyyy) {
+    const [, m, d, y] = mdyyyy;
+    const iso = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    return Date.parse(`${iso}T00:00:00Z`);
+  }
+
+  const t = Date.parse(s);
+  return Number.isFinite(t) ? t : 0;
+}
+
+function formatDate(dateStr: string) {
+  const ts = toTs(dateStr);
+  if (!ts) return dateStr || "";
+  return new Date(ts).toLocaleDateString();
+}
 
 export default async function Labs() {
   noStore();
   const items = await getAllLabs();
-  const latest = items[0];
+
+  // “open latest” should mean newest-by-date, not “first item in list”
+  const latest =
+    items.length > 0
+      ? [...items].sort((a, b) => toTs(b.date) - toTs(a.date))[0]
+      : null;
 
   return (
     <section className="space-y-6">
@@ -23,8 +62,7 @@ export default async function Labs() {
               experiments, notes, research.
             </h2>
             <p className="muted text-base md:text-lg max-w-prose mt-2">
-              hands-on writeups from ctfs, tooling trials, and small investigations —
-              focused on what’s reproducible.
+              hands-on writeups from ctfs, tooling trials, and small investigations — focused on what’s reproducible.
             </p>
           </div>
 
@@ -50,7 +88,10 @@ export default async function Labs() {
         <div className="card p-5 sm:p-6">
           <p className="muted">
             nothing here yet — i’ll post concise writeups as i go. meanwhile, check{" "}
-            <Link href="/dispatch" className="underline">dispatch</Link>.
+            <Link href="/dispatch" className="underline">
+              dispatch
+            </Link>
+            .
           </p>
         </div>
       ) : (
@@ -63,7 +104,7 @@ export default async function Labs() {
                 </Link>
               </h3>
               {it.summary ? <p className="muted mt-1">{it.summary}</p> : null}
-              <p className="muted mt-1 text-sm">{new Date(it.date).toLocaleDateString()}</p>
+              <p className="muted mt-1 text-sm">{formatDate(it.date)}</p>
             </li>
           ))}
         </ul>
