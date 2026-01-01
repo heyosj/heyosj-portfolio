@@ -14,7 +14,7 @@
   --accent:  #c77d54;
   --accent-600:#a9653e;
   --hover-accent:#f7e8c9;
-    /* light mode */
+  /* light mode */
   --latest-badge-bg: #fff4b8;      /* soft pastel yellow */
   --latest-badge-fg: #3b2f00;      /* readable on yellow */
   --latest-badge-border: rgba(60, 47, 0, 0.22);
@@ -132,7 +132,7 @@ a:hover { color: var(--accent-600); }
   --ink: #d1d1d1;         /* text */
   --subtext: #9a9a9a;
   --accent: #c77d54;      /* keep accent */
-    /* dark mode */
+  /* dark mode */
   --latest-badge-bg: #ffe08a;      /* brighter pastel yellow */
   --latest-badge-fg: #2b2100;
   --latest-badge-border: rgba(255, 224, 138, 0.40);
@@ -146,3 +146,47 @@ a:hover { color: var(--accent-600); }
 .clamp-1{-webkit-line-clamp:1}
 .clamp-2{-webkit-line-clamp:2}
 .clamp-3{-webkit-line-clamp:3}
+
+/* =========================================================
+   Minimal fix: restore list markers inside prose / MDX
+   (Tailwind preflight or other styles are suppressing bullets)
+   ========================================================= */
+@layer base {
+  /* Ensure list markers render (bullets + numbers) */
+  .prose :where(ul) {
+    list-style: disc !important;
+    padding-left: 1.5rem !important;
+  }
+
+  .prose :where(ol) {
+    list-style: decimal !important;
+    padding-left: 1.5rem !important;
+  }
+
+  .prose :where(li)::marker {
+    color: currentColor !important;
+  }
+
+  /* Nuclear option: if ::marker content is being set to none somewhere */
+  .prose ul.list-disc > li::marker {
+    content: "•  " !important;
+    color: currentColor !important;
+  }
+}
+
+/* FORCE bullets to render for Tailwind list-disc (something is suppressing markers) */
+ul.list-disc {
+  list-style-type: disc !important;
+  list-style-position: outside !important;
+  padding-left: 1.5rem !important;
+  display: block !important; /* in case something set ul to flex */
+}
+
+ul.list-disc > li {
+  display: list-item !important; /* in case li was set to block/flex */
+}
+
+ul.list-disc > li::marker {
+  content: "•  " !important;     /* in case marker content was nuked */
+  color: currentColor !important;
+}
