@@ -1,0 +1,93 @@
+---
+title: "PCAP Analysis Using tshark"
+description: "Dabbling with light malware analysis. Starting with investigating the PCAP file"
+date: "2026-01-02"
+slug: "pcap-analysis"
+tags: ["pcap", "tshark", "wireshark", "dfir", "network-forensics"]
+eyebrow: "Lab Notes"
+favorite: false
+---
+
+## Sample source
+
+This PCAP was downloaded from:
+
+https://www.malware-traffic-analysis.net/
+
+Exercise:
+**Traffic Analysis Exercise – 2025-06-13**
+
+---
+
+## Purpose of this lab
+
+The purpose of this lab is to understand how tshark works.
+
+---
+
+## Step 1 — Understand the evidence
+
+```bash
+ls -lah
+```
+
+Why: establish file size, timestamps, and scope of the capture.
+
+---
+
+## Step 2 — Preserve evidence identity
+
+```bash
+sha256sum *.pcap | tee hashes.txt
+```
+
+Why: create a reproducible fingerprint of the evidence.
+
+---
+
+## Step 3 — Identify likely infected host
+
+```bash
+tshark -r *.pcap -T fields -e ip.src | sort | uniq -c | sort -nr | head
+```
+
+Why: infected hosts tend to generate disproportionate traffic.
+
+---
+
+## Step 4 — Confirm central host
+
+```bash
+tshark -r *.pcap -T fields -e ip.dst | sort | uniq -c | sort -nr | head
+```
+
+Why: a true victim appears frequently as both source and destination.
+
+---
+
+## Step 5 — DNS review
+
+```bash
+tshark -r *.pcap -Y "dns.qry.name" -T fields -e frame.time -e ip.src -e dns.qry.name
+```
+
+Why: DNS often reveals malicious infrastructure or confirms its absence.
+
+---
+
+## Step 6 — Pivot on suspicious external IP
+
+```bash
+tshark -r *.pcap -Y "ip.addr == <SUSPICIOUS_IP>" -T fields -e frame.time -e ip.src -e ip.dst -e tcp.dstport -e udp.dstport
+```
+
+Why: `ip.addr` matches traffic in either direction, simplifying pivots.
+
+---
+
+## Key takeaways
+
+- Start with statistics, not payloads
+- Absence of DNS signal can still be meaningful
+- `ip.addr` enables fast bidirectional analysis
+- Traffic shape alone can indicate beaconing
