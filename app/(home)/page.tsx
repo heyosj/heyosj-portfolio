@@ -191,16 +191,21 @@ function MiniLatest({
       <div className="card h-full rounded-2xl border p-5 transition hover:-translate-y-[1px] flex flex-col">
         {/* meta */}
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide">
-          <span
-            className="inline-flex items-center rounded-full px-2 py-0.5 border"
-            style={{
-              background: "rgba(255,215,128,0.12)",
-              color: "rgb(255,215,128)",
-              borderColor: "rgba(255,215,128,0.25)",
-            }}
-          >
-            recent
-          </span>
+        <span
+          className="inline-flex items-center rounded-full px-2 py-0.5 border select-none"
+          style={{
+            // translucent fill (stays “pill”, not solid)
+            background: "rgba(255, 215, 128, 0.18)",
+            // readable in light mode (ink, not yellow)
+            color: "var(--ink)",
+            // slightly warmer border so it still feels “yellow family”
+            borderColor: "rgba(255, 215, 128, 0.45)",
+            // tiny glow, but subtle
+            boxShadow: "0 0 0 1px rgba(0,0,0,0.03), 0 0 18px rgba(255, 215, 128, 0.12)",
+          }}
+        >
+          recent
+        </span>
           <span className="muted">{kind}</span>
           <span className="muted">•</span>
           <span className="muted">
