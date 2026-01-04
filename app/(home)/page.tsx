@@ -24,9 +24,9 @@ export default async function Home() {
           hi there — i’m oj.
         </h1>
         <p className="muted mt-2 max-w-prose">
-          i love security, and this site is where i learn in public. from cloud to
-          threat hunting to incident response, i’m documenting what i study, test,
-          and break so i keep growing and share along the way.
+          i love security, and this site is where i learn in public.
+          breaking down incidents, building forensics workflows, dabbling in some malware analysis, and
+          sharing the repeatable patterns that actually work.
         </p>
         <p className="muted mt-3 text-[13px]">
           new here?{" "}

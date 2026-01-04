@@ -10,12 +10,12 @@ export default function About() {
     <section className="space-y-8">
       {/* hero card */}
       <div className="card p-6 md:p-7">
-        <h1 className="mt-2 text-3xl md:text-4xl font-serif leading-tight">hi — i’m oj.</h1>
+        <h1 className="mt-2 text-3xl md:text-4xl font-serif leading-tight">hi — i'm oj.</h1>
         <p className="muted mt-2">
-          i write short, practical security notes to show how i learn, reason, and ship — vendor-agnostic and ready to run.
+          i build detection workflows, analyze threats, and document repeatable security patterns. vendor-agnostic and ready to deploy.
         </p>
 
-        {/* quick facts (mirrors /start) */}
+        {/* quick facts */}
         <dl className="mt-3 grid gap-y-1.5 [grid-template-columns:4.25rem_1fr] md:[grid-template-columns:5rem_1fr] text-[13px]">
           <div className="contents">
             <dt className="font-medium text-foreground">now:</dt>
@@ -23,11 +23,7 @@ export default function About() {
           </div>
           <div className="contents">
             <dt className="font-medium text-foreground">focus:</dt>
-            <dd className="muted">email &amp; cloud security • threat hunting</dd>
-          </div>
-          <div className="contents">
-            <dt className="font-medium text-foreground">overview:</dt>
-            <dd className="muted">detections • examples • rationale</dd>
+            <dd className="muted">cloud forensics, threat detection, incident response</dd>
           </div>
         </dl>
 
@@ -56,79 +52,83 @@ export default function About() {
           "prose-p:my-2 prose-ul:my-3 prose-li:my-1.5 leading-relaxed",
         ].join(" ")}
       >
-        <h2>why this exists</h2>
+        <h2>what this is</h2>
+        <p>
+          this site documents security workflows i've built, tested, and deployed. from cloud forensics setups 
+          to threat hunting playbooks to incident response patterns. everything here is practical, repeatable, 
+          and grounded in real work.
+        </p>
+        <p>
+          i write for security practitioners who need to implement something tomorrow, not read theory. 
+          if you're setting up detection infrastructure, analyzing suspicious activity, or building IR workflows, 
+          this is your resource.
+        </p>
+
+        <h2>how i approach it</h2>
         <ul>
-          <li><strong>clarity first.</strong> explain → configure → verify.</li>
-          <li><strong>trace my thinking.</strong> decisions, trade-offs, and gotchas — not just the happy path.</li>
-          <li><strong>grow over time.</strong> add posts as i learn; mark updates when i revisit topics.</li>
+          <li><strong>show the full picture.</strong> explain the context, walk through configuration, verify it works.</li>
+          <li><strong>document decisions.</strong> trade-offs, gotchas, and why i chose one approach over another.</li>
+          <li><strong>make it repeatable.</strong> if a teammate can't run this tomorrow, it's not ready.</li>
         </ul>
 
-        <h2>what you’ll find</h2>
+        <h2>what you'll find</h2>
+        
+        <p><strong>email security</strong> — authentication controls (SPF, DKIM, DMARC), phishing analysis, evidence preservation</p>
+        
+        <p><strong>cloud & identity</strong> — Azure forensics, container workflows, least-privilege patterns</p>
+        
+        <p><strong>detection engineering</strong> — honeypot setups, log aggregation pipelines, alert tuning</p>
+        
+        <p><strong>incident response</strong> — PCAP analysis, malware triage, repeatable investigation workflows</p>
+
+        <p className="text-sm muted mt-4">
+          most posts work standalone. when a sequence helps, i link them. every post includes 
+          working examples and the reasoning behind them.
+        </p>
+
+        <h2>currently working on</h2>
         <ul>
-          <li><strong>notes across domains.</strong> email security, cloud &amp; identity, detection engineering, incident response, and operational hygiene.</li>
-          <li><strong>standalone posts, with optional paths.</strong> most notes work on their own; when a sequence helps, i group them into a loose series.</li>
-          <li><strong>practical artifacts.</strong> detections, runnable examples, and the rationale behind them.</li>
-          <li><strong>tags to jump around.</strong> some tags (like “email security”) have a rough order if you’re starting fresh.</li>
+          <li>refining detection rules to maximize signal and minimize false positives</li>
+          <li>building agent-assisted IR workflows to reduce manual triage time</li>
+          <li>expanding cloud forensics coverage (AWS, GCP alongside Azure)</li>
         </ul>
 
         <div className="not-prose rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 my-6">
           <p className="muted leading-relaxed">
-            if you spot anything off,{" "}
+            see something wrong or have suggestions?{" "}
             <Link
               href="mailto:me@heyosj.com"
               target="_blank"
               rel="noreferrer noopener"
               className="font-medium underline underline-offset-2 decoration-accent hover:decoration-accent-600"
             >
-              tell me
+              let me know
             </Link>
-            . i’m a lifelong student, refining my understanding as i go.
+            . this site evolves as i learn.
           </p>
         </div>
 
-        <h2>objectives</h2>
-        <ul>
-          <li>make it easy to learn a thing end-to-end without fluff.</li>
-          <li>write like i’m handing this to a teammate to run tomorrow.</li>
-          <li>keep notes maintained (published + updated dates on every post).</li>
-        </ul>
-
-        <h2>focus areas</h2>
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
-          <li><strong>email security</strong> — block spoofing/abuse while keeping good mail moving.</li>
-          <li><strong>cloud &amp; identity</strong> — secure defaults, least-privilege, clear boundaries.</li>
-          <li><strong>detection engineering</strong> — raise signal, reduce noise, test what we ship.</li>
-          <li><strong>operational hygiene</strong> — simple guardrails, clear playbooks, steady improvements.</li>
-        </ul>
-
-        <h2>currently exploring</h2>
-        <ul className="space-y-2">
-          <li>refining controls so high-signal events get through and noise stays out.</li>
-          <li>metrics that show what’s working and what to fix next.</li>
-          <li>agent-assisted workflows to remove repetitive steps and speed response.</li>
-          <li>applying topics i study to real systems: networks, security, and ml safety.</li>
-        </ul>
       </article>
 
-      {/* helpful links (spacious, non-cramped) */}
+      {/* helpful links */}
       <section className="mt-2">
         <div className="rounded-xl border bg-card p-4 md:p-5">
           <ul className="text-sm leading-6 space-y-2">
             <li>
               new here?{" "}
               <Link href="/start" className="underline underline-offset-2">
-                the shortlist →
+                start with these three →
               </Link>
             </li>
             <li>
-              curious how this site works?{" "}
+              want to see the code?{" "}
               <a
                 href="https://github.com/heyosj/heyosj-portfolio"
                 target="_blank"
                 rel="noreferrer"
                 className="underline underline-offset-2"
               >
-                source on github ↗
+                site source on github ↗
               </a>
             </li>
           </ul>

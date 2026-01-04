@@ -79,16 +79,19 @@ export default async function StartPage({
         <header className="card p-5 md:p-6">
           <h1 className="font-serif text-3xl md:text-[34px] leading-snug">the shortlist</h1>
           <p className="muted mt-1 text-[13.5px]">three picks: one tool, one detection, one lab</p>
+          <p className="muted mt-1 text-[12.5px]">start here, then explore what catches your eye.</p>
+
+
 
           <dl className="mt-2 grid grid-cols-[5.5rem_1fr] md:grid-cols-[6rem_1fr] gap-y-1 text-[13px]">
             <dt className="font-medium text-foreground">now:</dt>
             <dd className="muted">security analyst @ mls</dd>
 
             <dt className="font-medium text-foreground">focus:</dt>
-            <dd className="muted">email &amp; cloud security, threat hunting</dd>
+            <dd className="muted">building detections, hunting threats, analyzing incidents</dd>
 
             <dt className="font-medium text-foreground">overview:</dt>
-            <dd className="muted">detections • examples • rationale</dd>
+            <dd className="muted">hands-on workflows, real examples, why they matter</dd>
           </dl>
         </header>
 
