@@ -11,7 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const TYPES = {
-  post: { dir: "content/posts", label: "post" },
+  post: { dir: "content/dispatch", label: "post" },
   playbook: { dir: "content/playbooks", label: "playbook" },
   lab: { dir: "content/labs", label: "lab" },
 };
@@ -41,24 +41,16 @@ function template(kind, title, slug) {
 title: "${title}"
 description: ""
 date: "${date}"
+slug: "${slug}"
 tags: []
+order: 999
+favorite: false
 ---
 
 `;
 
   if (kind === "post") {
-    return (
-      commonFrontmatter +
-      `> tl;dr — one-liner value statement.
-
-## why it matters
-
-## how to do it
-
-## checklist
-
-`
-    );
+    return commonFrontmatter + `## intro\n\n`;
   }
 
   if (kind === "playbook") {
@@ -67,12 +59,16 @@ tags: []
 title: "${title}"
 description: ""
 date: "${date}"
+updated: "${date}"
+slug: "${slug}"
 tags: []
-related: [] # optional related dispatch slugs
-repo: ""    # optional GitHub repo/url
+order: 999
+pinned: false
+repo: ""
+favorite: false
 ---
 
-> when to use this
+> scenario
 
 ## prerequisites
 
@@ -92,11 +88,14 @@ repo: ""    # optional GitHub repo/url
 title: "${title}"
 description: ""
 date: "${date}"
+slug: "${slug}"
 tags: []
-status: "draft" # draft | complete
+order: 999
+difficulty: ""
+category: ""
 ---
 
-## context
+## overview
 
 ## approach
 
@@ -116,20 +115,39 @@ function assertNotExists(filePath) {
 }
 
 async function main() {
-  const kind = (process.argv[2] || "").toLowerCase();
-  const rawName = process.argv.slice(3).join(" ").trim();
+  const args = process.argv.slice(2);
+  const kind = (args.shift() || "").toLowerCase();
+  let category = "general";
+  const nameParts = [];
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === "--category" || arg === "-c") {
+      category = args[i + 1] || "";
+      i += 1;
+      continue;
+    }
+    nameParts.push(arg);
+  }
+
+  const rawName = nameParts.join(" ").trim();
+  const categorySlug = toSlug(category);
 
   if (!TYPES[kind]) {
     console.error(
-      `Usage:\n  node tools/new.mjs post "my title"\n  node tools/new.mjs playbook "my playbook"\n  node tools/new.mjs lab "my lab"`
+      `Usage:\n  node tools/new.mjs post "my title" --category email-security\n  node tools/new.mjs playbook "my playbook" --category email\n  node tools/new.mjs lab "my lab" --category dfir`
     );
     process.exit(1);
   }
   if (!rawName) {
     console.error(`✖ Please provide a name/title, e.g.:
-  npm run new:post smtp
-  npm run new:playbook "mta-sts rollout"
-  npm run new:lab "htb - machine name"`);
+  npm run new:post -- "smtp" --category email-security
+  npm run new:playbook -- "mta-sts rollout" --category email
+  npm run new:lab -- "htb - machine name" --category dfir`);
+    process.exit(1);
+  }
+  if (!categorySlug) {
+    console.error("✖ Please provide a valid category (letters/numbers/hyphens).");
     process.exit(1);
   }
 
@@ -137,7 +155,7 @@ async function main() {
   const { dir, label } = TYPES[kind];
 
   const root = process.cwd();
-  const outDir = path.join(root, dir);
+  const outDir = path.join(root, dir, categorySlug);
   const outFile = path.join(outDir, `${slug}.mdx`);
 
   fs.mkdirSync(outDir, { recursive: true });
@@ -149,6 +167,7 @@ async function main() {
   console.log(`✔ Created ${label}: ${path.relative(root, outFile)}`);
   console.log(`   title: "${rawName}"`);
   console.log(`   slug:  ${slug}`);
+  console.log(`   category: ${categorySlug}`);
 }
 
 main().catch((err) => {

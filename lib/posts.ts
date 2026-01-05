@@ -1,6 +1,6 @@
 // lib/posts.ts
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import matter from "gray-matter";
 import { z } from "zod";
 import readingTime from "reading-time";
@@ -10,8 +10,9 @@ import remarkGfm from "remark-gfm";
 import remarkRehype from "remark-rehype";
 import rehypeHighlight from "rehype-highlight";
 import rehypeStringify from "rehype-stringify";
+import { categoryFromPath, listMdxFiles } from "./content";
 
-const postsDir = path.join(process.cwd(), "content", "posts");
+const postsDir = path.join(process.cwd(), "content", "dispatch");
 
 // allow lowercase letters, numbers, and dashes (kebab-case)
 const Slug = z
@@ -74,6 +75,7 @@ export type Post = {
   description: string;
   tags: string[];
   slug: string;
+  category: string;
   readingTime: string;
   html: string;
   order: number;
@@ -82,16 +84,16 @@ export type Post = {
 
 export async function getAllPosts(): Promise<Post[]> {
   if (!fs.existsSync(postsDir)) return [];
-  const files = fs.readdirSync(postsDir).filter((f) => f.endsWith(".md") || f.endsWith(".mdx"));
+  const files = listMdxFiles(postsDir);
   const posts: Post[] = [];
 
   for (const file of files) {
-    const fullPath = path.join(postsDir, file);
-    const raw = fs.readFileSync(fullPath, "utf8");
+    const raw = fs.readFileSync(file, "utf8");
     const { content, data } = matter(raw);
 
     const fm = Frontmatter.parse(data);
     const slug = fm.slug ?? slugifyFilename(file);
+    const category = categoryFromPath(postsDir, file);
 
     const rt = readingTime(content).text;
     const compiled = await markdownToHtml(content);
@@ -109,6 +111,7 @@ export async function getAllPosts(): Promise<Post[]> {
       description: fm.description,
       tags: fm.tags,
       slug,
+      category,
       readingTime: rt,
       html: compiled,
       order: fm.order ?? 999,

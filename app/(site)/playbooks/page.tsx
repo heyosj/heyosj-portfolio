@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { getPlaybooksMeta, type PlaybookMeta } from "@/lib/playbooks";
+import ActionChip from "@/components/ActionChip";
 
 export const metadata = { title: "playbooks" };
 export const revalidate = 0; // ensure fresh read
@@ -11,12 +12,26 @@ function ts(m: PlaybookMeta) {
   return +new Date((m as any).updated ?? m.date);
 }
 
-export default async function PlaybooksPage() {
+function labelFromCategory(category: string) {
+  return category.replace(/-/g, " ");
+}
+
+export default async function PlaybooksPage({
+  searchParams,
+}: {
+  searchParams?: { category?: string | string[] };
+}) {
   noStore();
   const items = await getPlaybooksMeta();
+  const categories = Array.from(new Set(items.map((i) => i.category))).sort((a, b) =>
+    a.localeCompare(b)
+  );
+  const raw = typeof searchParams?.category === "string" ? searchParams.category : "all";
+  const active = categories.includes(raw) ? raw : "all";
+  const filtered = active === "all" ? items : items.filter((i) => i.category === active);
 
   // sort newest -> oldest once; reuse for button + list
-  const sorted = [...items].sort((a, b) => ts(b) - ts(a));
+  const sorted = [...filtered].sort((a, b) => ts(b) - ts(a));
   const latest = sorted[0];
 
   return (
@@ -49,6 +64,21 @@ export default async function PlaybooksPage() {
           )}
         </div>
       </header>
+
+      <div className="flex flex-wrap gap-2">
+        <ActionChip href="/playbooks" active={active === "all"}>
+          all
+        </ActionChip>
+        {categories.map((c) => (
+          <ActionChip
+            key={c}
+            href={`/playbooks?category=${encodeURIComponent(c)}`}
+            active={active === c}
+          >
+            {labelFromCategory(c)}
+          </ActionChip>
+        ))}
+      </div>
 
       {/* list */}
       <ol className="space-y-3">

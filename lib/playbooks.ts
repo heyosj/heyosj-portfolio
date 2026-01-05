@@ -7,15 +7,9 @@ import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import React from "react";
+import { categoryFromPath, filenameToSlug, listMdxFiles } from "./content";
 
 const PLAYBOOKS_DIR = path.join(process.cwd(), "content", "playbooks");
-
-function isMDXFile(name: string) {
-  return name.endsWith(".mdx") || name.endsWith(".md");
-}
-function filenameToSlug(filename: string) {
-  return filename.replace(/\.mdx?$/i, "");
-}
 
 /* ---------- types ---------- */
 
@@ -45,6 +39,7 @@ export type PlaybookListItem = {
   url: string;
   repo?: string;
   pinned: boolean;
+  category: string;
 };
 
 export type PlaybookMeta = PlaybookListItem;
@@ -110,8 +105,7 @@ function readFrontmatter(fullPath: string): PlaybookFrontmatter {
 }
 
 function getFilePaths(): string[] {
-  if (!fs.existsSync(PLAYBOOKS_DIR)) return [];
-  return fs.readdirSync(PLAYBOOKS_DIR).filter(isMDXFile);
+  return listMdxFiles(PLAYBOOKS_DIR);
 }
 
 /* ---------- list/meta ---------- */
@@ -120,11 +114,12 @@ export async function getPlaybooksMeta(): Promise<PlaybookListItem[]> {
   const files = getFilePaths();
 
   const items: PlaybookListItem[] = files.map((fname) => {
-    const full = path.join(PLAYBOOKS_DIR, fname);
+    const full = fname;
     const fm = readFrontmatter(full);
-    const slug = fm.slug ?? filenameToSlug(fname);
+    const slug = fm.slug ?? filenameToSlug(full);
     const updated = fm.updated || fm.date;
     const pinned = Boolean(fm.favorite ?? fm.featured ?? fm.pinned ?? false);
+    const category = categoryFromPath(PLAYBOOKS_DIR, full);
 
     return {
       slug,
@@ -137,6 +132,7 @@ export async function getPlaybooksMeta(): Promise<PlaybookListItem[]> {
       url: fm.url ?? `/playbooks/${slug}`,
       repo: fm.repo,
       pinned,
+      category,
     };
   });
 
@@ -170,20 +166,17 @@ export async function getPinnedPlaybooks(limit = 1): Promise<PlaybookListItem[]>
 /* ---------- single doc ---------- */
 
 export async function getPlaybook(slug: string): Promise<PlaybookDoc | null> {
-  const directMDX = path.join(PLAYBOOKS_DIR, `${slug}.mdx`);
-  const directMD = path.join(PLAYBOOKS_DIR, `${slug}.md`);
   let filePath: string | null = null;
-
-  if (fs.existsSync(directMDX)) filePath = directMDX;
-  else if (fs.existsSync(directMD)) filePath = directMD;
-  else {
-    for (const fname of getFilePaths()) {
-      const full = path.join(PLAYBOOKS_DIR, fname);
-      const fm = readFrontmatter(full);
-      if (fm.slug === slug) {
-        filePath = full;
-        break;
-      }
+  for (const full of getFilePaths()) {
+    const baseSlug = filenameToSlug(full);
+    if (baseSlug === slug) {
+      filePath = full;
+      break;
+    }
+    const fm = readFrontmatter(full);
+    if (fm.slug === slug) {
+      filePath = full;
+      break;
     }
   }
   if (!filePath) return null;

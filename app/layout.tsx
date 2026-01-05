@@ -17,8 +17,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={initialHtmlClass} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col bg-paper text-ink dark:bg-paper-dark dark:text-ink-dark">
-        <main className="flex-1">
-          <div className="mx-auto max-w-3xl px-5">{children}</div>
+        <main className="flex-1 flex">
+          <div className="mx-auto max-w-3xl px-5 flex-1">{children}</div>
         </main>
         <footer className="py-10 text-sm text-subtext dark:text-subtext-dark">
           <div className="mx-auto max-w-3xl px-5">

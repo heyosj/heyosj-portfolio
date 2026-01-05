@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { unstable_noStore as noStore } from "next/cache";
 import { getAllLabs } from "@/lib/labs";
+import ActionChip from "@/components/ActionChip";
 
 export const metadata = { title: "labs" };
 export const runtime = "nodejs";
@@ -41,14 +42,28 @@ function formatDate(dateStr: string) {
   return new Date(ts).toLocaleDateString();
 }
 
-export default async function Labs() {
+function labelFromCategory(category: string) {
+  return category.replace(/-/g, " ");
+}
+
+export default async function Labs({
+  searchParams,
+}: {
+  searchParams?: { category?: string | string[] };
+}) {
   noStore();
   const items = await getAllLabs();
+  const categories = Array.from(new Set(items.map((i) => i.category))).sort((a, b) =>
+    a.localeCompare(b)
+  );
+  const raw = typeof searchParams?.category === "string" ? searchParams.category : "all";
+  const active = categories.includes(raw) ? raw : "all";
+  const filtered = active === "all" ? items : items.filter((i) => i.category === active);
 
   // “open latest” should mean newest-by-date, not “first item in list”
   const latest =
-    items.length > 0
-      ? [...items].sort((a, b) => toTs(b.date) - toTs(a.date))[0]
+    filtered.length > 0
+      ? [...filtered].sort((a, b) => toTs(b.date) - toTs(a.date))[0]
       : null;
 
   return (
@@ -84,7 +99,22 @@ export default async function Labs() {
         </div>
       </header>
 
-      {items.length === 0 ? (
+      <div className="flex flex-wrap gap-2">
+        <ActionChip href="/labs" active={active === "all"}>
+          all
+        </ActionChip>
+        {categories.map((c) => (
+          <ActionChip
+            key={c}
+            href={`/labs?category=${encodeURIComponent(c)}`}
+            active={active === c}
+          >
+            {labelFromCategory(c)}
+          </ActionChip>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
         <div className="card p-5 sm:p-6">
           <p className="muted">
             nothing here yet — i’ll post concise writeups as i go. meanwhile, check{" "}
@@ -96,7 +126,7 @@ export default async function Labs() {
         </div>
       ) : (
         <ul className="grid gap-3">
-          {items.map((it) => (
+          {filtered.map((it) => (
             <li key={it.slug} className="card p-5">
               <h3 className="font-serif text-xl">
                 <Link href={`/labs/${it.slug}`} className="underline" prefetch>

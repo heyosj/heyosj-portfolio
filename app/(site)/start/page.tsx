@@ -146,6 +146,12 @@ export default async function StartPage({
           )}
         </section>
 
+        <FeaturedProjectRow
+          title="Argus"
+          blurb="Browser-based phishing email analysis: import .eml or raw source, parse headers/body, extract URLs, and export a clean summary."
+          href="https://heyosj.github.io/argus/"
+        />
+
         {/* footer */}
         <div className="muted mt-6 space-y-2">
           <p>
@@ -311,5 +317,52 @@ function Card({
         </div>
       </article>
     </Link>
+  );
+}
+
+function FeaturedProjectRow({
+  title,
+  blurb,
+  href,
+}: {
+  title: string;
+  blurb: string;
+  href: string;
+}) {
+  return (
+    <div className="card rounded-2xl border px-5 py-4 md:px-6 md:py-5">
+      <div className="flex flex-wrap items-center gap-3 md:justify-between">
+        <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-wide">
+          <span
+            className="inline-flex items-center rounded-full px-2 py-0.5 border select-none"
+            style={{
+              background: "var(--featured-badge-bg)",
+              color: "var(--featured-badge-fg)",
+              borderColor: "var(--featured-badge-border)",
+              boxShadow: "0 0 18px var(--featured-badge-glow)",
+            }}
+          >
+            featured
+          </span>
+          <span className="muted">{title} • project</span>
+        </div>
+        <div className="flex items-center gap-3 text-sm">
+          <a
+            className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] uppercase tracking-wide transition hover:-translate-y-[1px]"
+            style={{
+              background: "var(--paper)",
+              borderColor: "var(--border)",
+              color: "var(--ink)",
+            }}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            open app →
+          </a>
+        </div>
+      </div>
+      <p className="muted mt-2 max-w-2xl text-sm">{blurb}</p>
+    </div>
   );
 }

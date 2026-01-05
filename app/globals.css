@@ -15,10 +15,14 @@
   --accent-600:#a9653e;
   --hover-accent:#f7e8c9;
   /* light mode */
-  --latest-badge-bg: #fff4b8;      /* soft pastel yellow */
-  --latest-badge-fg: #3b2f00;      /* readable on yellow */
-  --latest-badge-border: rgba(60, 47, 0, 0.22);
-  --latest-badge-glow: rgba(255, 214, 88, 0.35);
+  --latest-badge-bg: rgba(155, 122, 255, 0.16);
+  --latest-badge-fg: var(--ink);
+  --latest-badge-border: rgba(155, 122, 255, 0.45);
+  --latest-badge-glow: rgba(155, 122, 255, 0.18);
+  --featured-badge-bg: rgba(19, 217, 131, 0.16);
+  --featured-badge-fg: #0c5a40;
+  --featured-badge-border: rgba(19, 217, 131, 0.45);
+  --featured-badge-glow: rgba(19, 217, 131, 0.25);
 }
 
 html, body { height: 100%; }
@@ -133,10 +137,14 @@ a:hover { color: var(--accent-600); }
   --subtext: #9a9a9a;
   --accent: #c77d54;      /* keep accent */
   /* dark mode */
-  --latest-badge-bg: #ffe08a;      /* brighter pastel yellow */
-  --latest-badge-fg: #2b2100;
-  --latest-badge-border: rgba(255, 224, 138, 0.40);
-  --latest-badge-glow: rgba(255, 224, 138, 0.45);
+  --latest-badge-bg: rgba(178, 148, 255, 0.22);
+  --latest-badge-fg: var(--ink);
+  --latest-badge-border: rgba(178, 148, 255, 0.55);
+  --latest-badge-glow: rgba(178, 148, 255, 0.3);
+  --featured-badge-bg: rgba(20, 255, 153, 0.18);
+  --featured-badge-fg: #bfffe3;
+  --featured-badge-border: rgba(20, 255, 153, 0.60);
+  --featured-badge-glow: rgba(20, 255, 153, 0.35);
 }
 
 ::selection { background: var(--accent, #c77d54); color: #fff; }

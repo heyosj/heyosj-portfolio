@@ -7,6 +7,7 @@ import { compileMDX } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import React from "react";
+import { categoryFromPath, filenameToSlug, listMdxFiles } from "./content";
 
 export type LabMeta = LabListItem;
 
@@ -34,6 +35,7 @@ export type LabListItem = {
   published: boolean;
   pinned: boolean;
   updated?: string;
+  category: string;
 };
 
 export type LabDoc = {
@@ -51,17 +53,8 @@ export type LabDoc = {
 
 const LABS_DIR = path.join(process.cwd(), "content", "labs");
 
-function isMDXFile(name: string) {
-  return name.endsWith(".mdx") || name.endsWith(".md");
-}
-
 export function getLabFilePaths(): string[] {
-  if (!fs.existsSync(LABS_DIR)) return [];
-  return fs.readdirSync(LABS_DIR).filter(isMDXFile);
-}
-
-export function filenameToSlug(filename: string) {
-  return filename.replace(/\.mdx?$/i, "");
+  return listMdxFiles(LABS_DIR);
 }
 
 export function readLabFrontmatter(filePath: string): Partial<LabFrontmatter> {
@@ -139,10 +132,11 @@ export async function getAllLabs(): Promise<LabListItem[]> {
   const files = getLabFilePaths();
 
   const items: LabListItem[] = files.map((fname) => {
-    const full = path.join(LABS_DIR, fname);
+    const full = fname;
     const fm = readLabFrontmatter(full);
-    const slug = (fm.slug && String(fm.slug)) || filenameToSlug(fname);
+    const slug = (fm.slug && String(fm.slug)) || filenameToSlug(full);
     const published = fm.published ?? true;
+    const category = categoryFromPath(LABS_DIR, full);
 
     return {
       slug,
@@ -154,6 +148,7 @@ export async function getAllLabs(): Promise<LabListItem[]> {
       published,
       pinned: fm.pinned ?? false,
       updated: fm.updated ? String(fm.updated) : undefined,
+      category,
     };
   });
 
@@ -176,20 +171,17 @@ export async function getAllLabs(): Promise<LabListItem[]> {
 
 /** Load and compile a single lab by slug. */
 export async function getLabBySlug(slug: string): Promise<LabDoc | null> {
-  const directMDX = path.join(LABS_DIR, `${slug}.mdx`);
-  const directMD = path.join(LABS_DIR, `${slug}.md`);
   let filePath: string | null = null;
-
-  if (fs.existsSync(directMDX)) filePath = directMDX;
-  else if (fs.existsSync(directMD)) filePath = directMD;
-  else {
-    for (const fname of getLabFilePaths()) {
-      const full = path.join(LABS_DIR, fname);
-      const fm = readLabFrontmatter(full);
-      if (fm.slug === slug) {
-        filePath = full;
-        break;
-      }
+  for (const full of getLabFilePaths()) {
+    const baseSlug = filenameToSlug(full);
+    if (baseSlug === slug) {
+      filePath = full;
+      break;
+    }
+    const fm = readLabFrontmatter(full);
+    if (fm.slug === slug) {
+      filePath = full;
+      break;
     }
   }
 

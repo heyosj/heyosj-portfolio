@@ -43,7 +43,7 @@ I wanted a simple place to **demonstrate how I learn, reason, and ship**:
 
 ## Highlights
 
-- **Content‑first:** posts live in `content/posts` (MD/MDX)
+- **Content‑first:** dispatch posts live in `content/dispatch/<category>` (MD/MDX)
 - **Series ordering:** tag a post `email security` and set `order` (1, 2, 3…)
 - **Nice reading UX:** tags, prev/next in series, related posts
 - **Maintained notes:** “Published” + “Updated” dates on each post
@@ -78,11 +78,11 @@ Your content in MDX/Markdown.
 
 ```
 app/
-  blog/[slug]/page.tsx   # post page (TOC pills, series nav, related)
-  page.tsx               # home
+  (site)/dispatch/[slug]/page.tsx   # post page (TOC pills, series nav, related)
+  (home)/page.tsx                   # home
 components/
 content/
-  posts/                 # your .md/.mdx files
+  dispatch/              # your .md/.mdx files (category subfolders)
 lib/
   posts.ts               # parses frontmatter, order, tags, dates
 ```
