@@ -149,7 +149,7 @@ export default async function StartPage({
         <FeaturedProjectRow
           title="Argus"
           blurb="Browser-based phishing email analysis: import .eml or raw source, parse headers/body, extract URLs, and export a clean summary."
-          href="https://heyosj.github.io/argus/"
+          href="https://argus-gray.vercel.app/"
         />
 
         {/* footer */}
