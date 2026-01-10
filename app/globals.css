@@ -47,6 +47,9 @@ a:hover { color: var(--accent-600); }
 .prose img,
 .prose video,
 .prose iframe,
+.article-content img,
+.article-content video,
+.article-content iframe,
 article img,
 article video,
 article iframe {
@@ -55,12 +58,14 @@ article iframe {
 }
 
 .prose pre,
+.article-content pre,
 article pre {
   max-width: 100%;
   overflow-x: auto;
 }
 
 .prose table,
+.article-content table,
 article table {
   display: block;
   max-width: 100%;
@@ -68,11 +73,13 @@ article table {
 }
 
 .prose code,
+.article-content code,
 article code {
   word-break: break-word;
 }
 
 .prose a,
+.article-content a,
 article a {
   overflow-wrap: anywhere;
 }

@@ -45,7 +45,7 @@ export default async function PlaybookPage({ params }: { params: { slug: string 
         </p>
       </header>
 
-      <div className="prose prose-slate max-w-prose dark:prose-invert">
+      <div className="article-content prose prose-slate max-w-prose dark:prose-invert">
         {/* Use raw content with MDXRemote (as your current page does) */}
         <MDXRemote source={pb.content} />
         {/* Or render the compiled node directly: {pb.mdx} */}

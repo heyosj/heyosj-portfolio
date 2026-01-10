@@ -71,7 +71,7 @@ export default async function LabPage({ params }: { params: { slug: string } }) 
       </header>
 
       {/* BODY (already compiled to a React node) */}
-      <div className="space-y-6">
+      <div className="article-content space-y-6">
         {mdx}
       </div>
     </article>
