@@ -44,6 +44,15 @@ a:hover { color: var(--accent-600); }
 .prose img { border-radius: .75rem; }
 
 /* Responsive media + overflow guards for article content */
+.article-content {
+  min-width: 0;
+}
+
+.article-content :where(p, li, blockquote, h1, h2, h3, h4, h5, h6, td, th) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .prose img,
 .prose video,
 .prose iframe,
