@@ -43,6 +43,40 @@ a:hover { color: var(--accent-600); }
 .prose a { text-decoration: underline; }
 .prose img { border-radius: .75rem; }
 
+/* Responsive media + overflow guards for article content */
+.prose img,
+.prose video,
+.prose iframe,
+article img,
+article video,
+article iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose pre,
+article pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.prose table,
+article table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.prose code,
+article code {
+  word-break: break-word;
+}
+
+.prose a,
+article a {
+  overflow-wrap: anywhere;
+}
+
 #progress { position: fixed; top:0; left:0; height:3px; width:0%;
   background: linear-gradient(90deg, var(--accent), var(--accent-600)); z-index:50; }
 

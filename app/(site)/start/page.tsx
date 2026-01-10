@@ -147,9 +147,9 @@ export default async function StartPage({
         </section>
 
         <FeaturedProjectRow
-          title="Argus"
+          title="PRVIEW"
           blurb="Browser-based phishing email analysis: import .eml or raw source, parse headers/body, extract URLs, and export a clean summary."
-          href="https://argus-gray.vercel.app/"
+          href="https://heyosj.github.io/prview/"
         />
 
         {/* footer */}

@@ -75,9 +75,9 @@ export default async function Home() {
 
       {/* featured project */}
       <FeaturedProject
-        title="Argus"
+        title="PRVIEW"
         blurb="Browser-based phishing email analysis: import .eml or raw source, parse headers/body, extract URLs, and export a clean summary."
-        href="https://argus-gray.vercel.app/"
+        href="https://heyosj.github.io/prview/"
       />
 
       {/* section cards */}
@@ -295,9 +295,7 @@ function FeaturedProject({
           </a>
         </div>
       </div>
-      <h3 className="font-serif text-lg md:text-xl mt-2 leading-snug">
-        Phishing Email Analyzer
-      </h3>
+      <h3 className="font-serif text-lg md:text-xl mt-2 leading-snug">PRVIEW</h3>
       <p className="muted mt-2 max-w-2xl text-sm">{blurb}</p>
     </div>
   );
