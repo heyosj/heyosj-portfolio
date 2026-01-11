@@ -19,6 +19,7 @@ export type PlaybookFrontmatter = {
   updated?: string;
   slug?: string;
   description?: string;
+  image?: string;
   tags?: string[];
   order?: number;
   url?: string;
@@ -55,6 +56,7 @@ export type PlaybookDoc = {
     date: string;
     tags: string[];
     readMin: number;
+    image?: string;
   };
 };
 
@@ -206,6 +208,7 @@ export async function getPlaybook(slug: string): Promise<PlaybookDoc | null> {
     date: frontmatter.updated ?? frontmatter.date ?? "",
     tags: frontmatter.tags ?? [],
     readMin,
+    image: frontmatter.image,
   };
 
   return { slug, frontmatter, content, mdx, meta };

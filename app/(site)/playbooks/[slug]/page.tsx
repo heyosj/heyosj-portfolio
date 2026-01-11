@@ -14,6 +14,13 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const pb = await getPlaybook(params.slug);   // ✅ await the promise
   if (!pb) return {};
+  const base = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.heyosj.com").replace(/\/$/, "");
+  const rawImage = pb.meta.image;
+  const image = rawImage
+    ? rawImage.startsWith("http")
+      ? rawImage
+      : `${base}${rawImage}`
+    : undefined;
   return {
     title: `${pb.meta.title} — Playbooks`,
     description: pb.meta.description,
@@ -21,11 +28,14 @@ export async function generateMetadata(
       type: "article",
       title: pb.meta.title,
       description: pb.meta.description,
+      url: `${base}/playbooks/${pb.slug}`,
+      images: image ? [{ url: image }] : undefined,
     },
     twitter: {
       card: "summary_large_image",
       title: pb.meta.title,
       description: pb.meta.description,
+      images: image ? [image] : undefined,
     },
   };
 }
