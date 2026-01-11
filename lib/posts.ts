@@ -119,9 +119,12 @@ export async function getAllPosts(): Promise<Post[]> {
     });
   }
 
-  // order asc, then date desc
+  // updated/date desc, then order asc
   return posts.sort(
-    (a, b) => (a.order ?? 999) - (b.order ?? 999) || +new Date(b.date) - +new Date(a.date)
+    (a, b) =>
+      +new Date(b.updated ?? b.date) -
+        +new Date(a.updated ?? a.date) ||
+      (a.order ?? 999) - (b.order ?? 999)
   );
 }
 
@@ -147,7 +150,9 @@ export async function getAllTags(): Promise<string[]> {
 // ---- Date helpers (for homepage) ----
 export async function getAllPostsByDate() {
   const posts = await getAllPosts();
-  return [...posts].sort((a, b) => +new Date(b.date) - +new Date(a.date));
+  return [...posts].sort(
+    (a, b) => +new Date(b.updated ?? b.date) - +new Date(a.updated ?? a.date)
+  );
 }
 
 export async function getLatestPost() {

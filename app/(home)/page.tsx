@@ -57,6 +57,7 @@ export default async function Home() {
             <MiniLatest
               kind="dispatch"
               title={latestDispatch.title}
+              description={latestDispatch.description}
               date={latestDispatch.date}
               href={`/dispatch/${latestDispatch.slug}`}
             />
@@ -66,6 +67,7 @@ export default async function Home() {
             <MiniLatest
               kind="playbooks"
               title={latestPlaybook.title}
+              description={latestPlaybook.description}
               date={latestPlaybook.date}
               href={latestPlaybook.url}
             />
@@ -185,11 +187,13 @@ function LatestSpotlight({
 function MiniLatest({
   kind,
   title,
+  description,
   date,
   href,
 }: {
   kind: "dispatch" | "playbooks";
   title: string;
+  description?: string;
   date: string;
   href: string;
 }) {
@@ -224,6 +228,12 @@ function MiniLatest({
         <h3 className="font-serif text-lg mt-3 line-clamp-2 group-hover:underline underline-offset-4">
           {title}
         </h3>
+
+        {description && (
+          <p className="muted mt-2 text-sm line-clamp-3">
+            {description}
+          </p>
+        )}
       </div>
     </Link>
   );
