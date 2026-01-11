@@ -4,29 +4,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Warm Kindle-like palette */
+/* Retro Miami palette */
 :root{
-  --paper:   #f6f1da;
-  --card:    #fbf6e6;
-  --border:  #e6dcc4;
-  --ink:     #3c3c3c;
-  --subtext: #665e53;
-  --accent:  #c77d54;
-  --accent-600:#a9653e;
-  --hover-accent:#f7e8c9;
+  --paper:   #f5fffb;
+  --card:    #ffffff;
+  --border:  #f3b7d7;
+  --ink:     #1a1730;
+  --subtext: #4b4a6a;
+  --accent:  #ff3fd3;
+  --accent-600:#ff1fbf;
+  --hover-accent:#ffe9f6;
+  --page-bg: var(--paper);
   /* light mode */
-  --latest-badge-bg: rgba(155, 122, 255, 0.16);
-  --latest-badge-fg: var(--ink);
-  --latest-badge-border: rgba(155, 122, 255, 0.45);
-  --latest-badge-glow: rgba(155, 122, 255, 0.18);
-  --featured-badge-bg: rgba(19, 217, 131, 0.16);
-  --featured-badge-fg: #0c5a40;
-  --featured-badge-border: rgba(19, 217, 131, 0.45);
-  --featured-badge-glow: rgba(19, 217, 131, 0.25);
+  --latest-badge-bg: rgba(0, 230, 240, 0.22);
+  --latest-badge-fg: #0e2230;
+  --latest-badge-border: rgba(0, 230, 240, 0.6);
+  --latest-badge-glow: rgba(0, 230, 240, 0.3);
+  --featured-badge-bg: rgba(255, 63, 211, 0.22);
+  --featured-badge-fg: #3a0f2a;
+  --featured-badge-border: rgba(255, 63, 211, 0.6);
+  --featured-badge-glow: rgba(255, 63, 211, 0.3);
 }
 
-html, body { height: 100%; }
-body { background: var(--paper); color: var(--ink); -webkit-font-smoothing: antialiased; }
+html, body { min-height: 100%; }
+body {
+  background: var(--page-bg, var(--paper));
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
 
 a { color: var(--ink); }
 a:hover { color: var(--accent-600); }
@@ -202,21 +207,24 @@ article a {
 }
 
 .dark {
-  --paper: #2b2b2b;       /* soft grey background */
-  --card: #3a3a3a;        /* card grey */
-  --border: #4a4a4a;
-  --ink: #d1d1d1;         /* text */
-  --subtext: #9a9a9a;
-  --accent: #c77d54;      /* keep accent */
+  --paper: #0b1024;
+  --card: #111a36;
+  --border: #28355a;
+  --ink: #f4f7ff;
+  --subtext: #b8c4e6;
+  --accent: #ff3fd3;
+  --accent-600: #ff1fbf;
+  --hover-accent: #1b2a4f;
+  --page-bg: var(--paper);
   /* dark mode */
-  --latest-badge-bg: rgba(178, 148, 255, 0.22);
+  --latest-badge-bg: rgba(0, 255, 242, 0.2);
   --latest-badge-fg: var(--ink);
-  --latest-badge-border: rgba(178, 148, 255, 0.55);
-  --latest-badge-glow: rgba(178, 148, 255, 0.3);
-  --featured-badge-bg: rgba(20, 255, 153, 0.18);
-  --featured-badge-fg: #bfffe3;
-  --featured-badge-border: rgba(20, 255, 153, 0.60);
-  --featured-badge-glow: rgba(20, 255, 153, 0.35);
+  --latest-badge-border: rgba(0, 255, 242, 0.55);
+  --latest-badge-glow: rgba(0, 255, 242, 0.35);
+  --featured-badge-bg: rgba(255, 63, 211, 0.22);
+  --featured-badge-fg: #ffe3f4;
+  --featured-badge-border: rgba(255, 63, 211, 0.6);
+  --featured-badge-glow: rgba(255, 63, 211, 0.4);
 }
 
 ::selection { background: var(--accent, #c77d54); color: #fff; }
