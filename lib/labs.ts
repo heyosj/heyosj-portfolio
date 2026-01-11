@@ -111,13 +111,13 @@ const mdxComponents = {
   code: (props: any) =>
     React.createElement("code", {
       className:
-        "rounded-md border border-[var(--border)] bg-[var(--card)] px-1.5 py-0.5 text-[0.95em] text-[var(--ink)]",
+        "rounded-md border border-[var(--code-border)] bg-[var(--inline-code-bg)] px-1.5 py-0.5 text-[0.95em] text-[var(--inline-code-text)]",
       ...props,
     }),
   pre: (props: any) =>
     React.createElement("pre", {
       className:
-        "rounded-xl border border-[var(--border)] bg-[var(--card)] text-[var(--ink)] overflow-x-auto p-4 text-sm",
+        "rounded-xl border border-[var(--code-border)] bg-[var(--code-bg)] text-[var(--code-text)] overflow-x-auto p-4 text-sm",
       ...props,
     }),
 };

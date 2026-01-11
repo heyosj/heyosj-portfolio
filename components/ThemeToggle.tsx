@@ -30,10 +30,10 @@ export default function ThemeToggle() {
         "relative inline-flex h-8 w-14 items-center rounded-full transition-colors",
         // neutral track so the knob color stands out
         isDark
-          ? "bg-zinc-800/70 border border-zinc-700"
-          : "bg-stone-200/80 border border-stone-300",
+          ? "bg-[#121a35] border border-[#2a3b5f]"
+          : "bg-[#f7eff8] border border-[#f3b7d7]",
         "shadow-inner focus:outline-none focus-visible:ring-2",
-        "focus-visible:ring-stone-400/50 dark:focus-visible:ring-zinc-500/40",
+        "focus-visible:ring-[#ff3fd3]/40 dark:focus-visible:ring-[#00fff2]/40",
       ].join(" ")}
     >
       <span
@@ -43,8 +43,8 @@ export default function ThemeToggle() {
           // - dark: soft gray
           // - light: warm amber
           isDark
-            ? "bg-stone-400 border-stone-500 shadow-[0_1px_4px_rgba(0,0,0,.28)]"
-            : "bg-amber-300 border-amber-400 shadow-[0_1px_4px_rgba(0,0,0,.18)]",
+            ? "bg-[#00fff2] border-[#00d8cf] shadow-[0_0_10px_rgba(0,255,242,.45)]"
+            : "bg-[#ff3fd3] border-[#ff1fbf] shadow-[0_0_10px_rgba(255,63,211,.35)]",
           isDark ? "translate-x-6" : "translate-x-0",
         ].join(" ")}
     />

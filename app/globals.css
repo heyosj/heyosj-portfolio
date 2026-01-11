@@ -15,6 +15,11 @@
   --accent-600:#ff1fbf;
   --hover-accent:#ffe9f6;
   --page-bg: var(--paper);
+  --code-bg: #10162f;
+  --code-border: #00e7ff;
+  --code-text: #f4f7ff;
+  --inline-code-bg: #fff0fb;
+  --inline-code-text: #5b1453;
   /* light mode */
   --latest-badge-bg: rgba(0, 230, 240, 0.22);
   --latest-badge-fg: #0e2230;
@@ -76,6 +81,10 @@ article iframe {
 article pre {
   max-width: 100%;
   overflow-x: auto;
+  background: var(--code-bg) !important;
+  color: var(--code-text) !important;
+  border: 1px solid var(--code-border) !important;
+  box-shadow: 0 0 0 1px rgba(0, 231, 255, 0.22), 0 8px 24px rgba(8, 16, 36, 0.25);
 }
 
 .prose table,
@@ -90,6 +99,20 @@ article table {
 .article-content code,
 article code {
   word-break: break-word;
+  background: var(--inline-code-bg) !important;
+  color: var(--inline-code-text) !important;
+  border: 1px solid var(--code-border) !important;
+  border-radius: 6px;
+  padding: 0.1rem 0.35rem;
+}
+
+.prose pre code,
+.article-content pre code,
+article pre code {
+  background: transparent !important;
+  color: inherit !important;
+  border: 0 !important;
+  padding: 0 !important;
 }
 
 .prose a,
@@ -216,6 +239,11 @@ article a {
   --accent-600: #ff1fbf;
   --hover-accent: #1b2a4f;
   --page-bg: var(--paper);
+  --code-bg: #0a1024;
+  --code-border: #00e7ff;
+  --code-text: #f4f7ff;
+  --inline-code-bg: #1a1236;
+  --inline-code-text: #e7efff;
   /* dark mode */
   --latest-badge-bg: rgba(0, 255, 242, 0.2);
   --latest-badge-fg: var(--ink);

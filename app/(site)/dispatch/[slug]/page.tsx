@@ -291,10 +291,11 @@ export default async function PostPage({ params }: { params: { slug: string } })
           "prose-a:text-accent hover:prose-a:text-accent-600",
           "prose-blockquote:border-l-border dark:prose-blockquote:border-l-border-dark",
           "prose-hr:border-border dark:prose-hr:border-border-dark",
-          "prose-code:bg-card dark:prose-code:bg-card-dark",
-          "prose-code:text-ink dark:prose-code:text-ink-dark",
-          "prose-pre:bg-card dark:prose-pre:bg-card-dark",
-          "prose-pre:border prose-pre:border-border dark:prose-pre:border-border-dark",
+          "prose-code:bg-[var(--inline-code-bg)]",
+          "prose-code:text-[var(--inline-code-text)]",
+          "prose-pre:bg-[var(--code-bg)]",
+          "prose-pre:text-[var(--code-text)]",
+          "prose-pre:border prose-pre:border-[var(--code-border)]",
           "prose-headings:scroll-mt-28",
         ].join(" ")}
         dangerouslySetInnerHTML={{ __html: htmlClean }}
