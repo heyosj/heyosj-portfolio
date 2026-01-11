@@ -1,0 +1,134 @@
+---
+title: "Email Threat Analysis: Rapid .eml Triage Commands for Analysts"
+date: "2026-01-11"
+updated: "2026-01-11"
+slug: "email-threat-analysis-eml-triage-commands"
+description: "Shell commands to run when triaging a downloaded .eml file, with explanations of what each command and flag does."
+tags:
+  - playbooks
+  - email
+  - incident-response
+  - forensics
+order: 999
+pinned: false
+favorite: true
+---
+
+> **Scenario:** I got a suspicious email and I want to examine it. Let's download it and examine the raw `.eml` without interacting with it in the browser so this can be done safely.
+
+This is part of a series. This entry focuses on email contents only; attachment examination and IP tracking will be separate follow-ups.
+
+## TL;DR
+1) **Copy + isolate** the file.  
+2) **Split headers** and pull key fields.  
+3) **Extract IOCs** (URLs, domains, attachments).
+
+---
+
+## 1) Safe copy + workspace
+```bash
+mkdir -p triage && cp suspicious-email.eml triage/ && cd triage
+```
+Objective: create an isolated workspace so evidence stays intact.
+- `mkdir -p triage` creates a folder named triage.
+- `cp suspicious-email.eml triage/` copies suspicious-email.eml and places it in the newly created triage folder.
+- `cd triage` changing out directory to the the triage folder that now contains our .eml file.
+
+Why: isolates evidence and prevents accidental modification of the original.
+
+---
+
+## 2) Extract headers only
+```bash
+sed -n '1,/^$/p' sample.eml > headers.txt
+```
+Objective: separate headers (routing/auth) from the body.
+- `sed` a stream editor for filtering and extracting specific lines or ranges from text files.
+- `-n` stops sed from printing everything by default.
+- `1,/^$/p` This prints everything from the top of the file up to the first empty line, since email headers are traditionally packed together and separated from the message body by a single blank line; if that break isn’t present, the email is likely malformed or corrupted.
+- Output goes to `headers.txt` for quick parsing.
+
+Why: headers contain routing and auth signals without all that noise from the body.
+
+---
+
+## 3) Pull key header fields
+```bash
+grep -nEi '^(from:|to:|reply-to:|subject:|date:|message-id:|return-path:|authentication-results:|received:|dkim-signature:|content-type:)' headers.txt
+```
+Objective: extract identity, auth, and content-type signals.
+- `-n` shows line numbers.
+- `-E` enables `|` for OR matching.
+- `-i` makes header names case-insensitive.
+- Focus on **From** vs **Return-Path** and **Reply-To** mismatches.
+
+Why: answers identity, auth, and content-type questions.
+
+---
+
+## 4) Show the Received chain
+```bash
+grep -nEi '^received:' headers.txt
+```
+Objective: map the hop trail to find the real sender path.
+- Same `grep` flags as above; filters only `Received:` lines.
+- Bottom-most entry is closest to origin.
+- Top-most is final delivery.
+
+Why: reveals the real sending infrastructure and odd hops.
+
+---
+
+## 5) Extract URLs
+```bash
+grep -Eo 'https?://[^"<> )]+' suspicious-email.eml | sort -u
+```
+Objective: list all URLs for IOC review without rendering HTML.
+- `-o` prints only the matched URL.
+- `https?://` matches http/https.
+- `[^"<> )]+` stops at common URL terminators.
+- `sort -u` deduplicates the list.
+
+Why: URLs are the most common phishing payload and best IOCs.
+
+---
+
+## 6) Extract domains from URLs
+```bash
+grep -Eo 'https?://[^"<> )]+' sample.eml | awk -F/ '{print $3}' | sort -u
+```
+Objective: reduce URLs to hostnames you can block or pivot on.
+- `awk`: a text processing tool that reads input line by line, splits each line into fields, and allows operations on those fields using simple rules.
+- `F/`: sets `/` as the field separator, telling `awk` to split each line wherever a slash appears.
+- `{print $3}`: outputs only the third field from each split line.
+ 
+ **Why field `3`**: when a URL like `https://example.com/path` is split on `/`, the resulting fields are:
+  1. `https:`
+  2. *(empty, due to the `//`)*
+  3. `example.com`
+  4. `path`
+
+  Because the hostname consistently appears in the third field, `$3` is used instead of `$2` (empty) or later fields that represent the URL path.
+
+Why: Domains you can check and block.
+
+---
+
+## 7) Check for attachments
+```bash
+grep -nEi 'content-disposition:|filename=' suspicious-email.eml
+```
+Objective: decide if attachment handling is required.
+- `content-disposition` and `filename=` are the usual attachment markers.
+- Answer the question: "Do I need attachment analysis?"
+
+Why: attachment handling is a separate risk path and often needs a sandbox.
+
+---
+
+## Notes
+
+- Use the **last** `Authentication-Results` block as the authoritative verdict, since each mail hop may add its own evaluation and the final receiving mailbox is the one that ultimately decides whether the message is trusted or delivered.
+- Preserve the original `.eml` file untouched and work only on copies; this maintains basic chain-of-custody, allows you to re-analyze the message later, and ensures you can always demonstrate that findings came from the original evidence.
+- If a suspicious IP appears in headers or body content, it usually warrants deeper pivoting (ASN ownership, reputation history, WHOIS, related infrastructure), which quickly exceeds simple triage and should be treated as a separate investigation step.
+- Attachment analysis is intentionally excluded here; dissection, hashing, and detonation introduce additional risk and tooling, and are better handled as a dedicated workflow when an attachment is actually present.
