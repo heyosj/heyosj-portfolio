@@ -43,9 +43,12 @@ export default async function LabPage({ params }: { params: { slug: string } }) 
 
   const { meta, mdx } = lab;
   const primaryTag = meta.tags?.[0];
+  const formattedDate = meta.date
+    ? new Date(`${meta.date}T00:00:00Z`).toLocaleDateString("en-US")
+    : "";
 
   return (
-    <article className="mx-auto max-w-3xl space-y-6">
+    <article className="mx-auto max-w-4xl space-y-6">
       {/* breadcrumb */}
       <nav aria-label="Breadcrumb" className="mb-1">
         {/* <Link
@@ -58,14 +61,14 @@ export default async function LabPage({ params }: { params: { slug: string } }) 
       </nav>
 
       {/* HEADER CARD */}
-      <header className="card space-y-4 p-6 md:p-8">
+      <header className="card space-y-4 p-5 sm:p-6 md:p-8">
         <div className="space-y-2">
-          <h1 className="text-3xl font-serif leading-tight">{meta.title}</h1>
-          {meta.description && <p className="muted">{meta.description}</p>}
+          <h1 className="text-2xl sm:text-3xl font-serif leading-tight">{meta.title}</h1>
+          {meta.description && <p className="muted text-sm sm:text-base">{meta.description}</p>}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {meta.date && <Pill>{meta.date}</Pill>}
+          {formattedDate && <Pill>{formattedDate}</Pill>}
           {meta.readMin > 0 && <Pill>{meta.readMin} min read</Pill>}
         </div>
       </header>

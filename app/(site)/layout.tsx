@@ -40,7 +40,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       <PathHistoryTracker />
 
       <header className="py-6">
-        <div className="mx-auto max-w-3xl px-5 flex items-center justify-between">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 flex items-center justify-between">
           <div className="flex items-baseline gap-2">
             <Link href="/" className="font-semibold tracking-tight">heyosj</Link>
             <span aria-hidden className="mx-1 muted">|</span>
@@ -51,12 +51,12 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
       </header>
 
       {showBackRow && (
-        <div className="mx-auto max-w-3xl px-5">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6">
           <BackLink className="mb-2 block" />
         </div>
       )}
 
-      <main className="mx-auto max-w-3xl px-5 pb-16">{children}</main>
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 pb-16">{children}</main>
 
       {/* CTA shows only on /dispatch, /labs, /playbooks via ConnectGate */}
       <footer className="pb-24">

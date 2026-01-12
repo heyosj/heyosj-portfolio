@@ -14,7 +14,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       disableTransitionOnChange
     >
       <header className="py-6">
-        <div className="mx-auto max-w-3xl px-5 flex items-center justify-between">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 flex items-center justify-between">
           {/* left: brand | about */}
           <div className="flex items-baseline gap-2">
             <Link href="/" className="font-semibold tracking-tight">heyosj</Link>

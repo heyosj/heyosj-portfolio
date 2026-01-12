@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import React from "react";
 import { categoryFromPath, filenameToSlug, listMdxFiles } from "./content";
+import DataTable from "@/components/DataTable";
 
 export type LabMeta = LabListItem;
 
@@ -96,6 +97,8 @@ function dateToTs(dateStr: string): number {
 
 /** theme-aware MDX component mapping (no TSX; uses React.createElement) */
 const mdxComponents = {
+  h1: (props: any) =>
+    React.createElement("h1", { className: "mt-10 text-3xl font-semibold", ...props }),
   h2: (props: any) =>
     React.createElement("h2", { className: "mt-10 text-2xl font-semibold", ...props }),
   h3: (props: any) =>
@@ -120,6 +123,7 @@ const mdxComponents = {
         "rounded-xl border border-[var(--code-border)] bg-[var(--code-bg)] text-[var(--code-text)] overflow-x-auto p-4 text-sm",
       ...props,
     }),
+  DataTable,
 };
 
 /**

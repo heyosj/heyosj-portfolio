@@ -59,8 +59,8 @@ a:hover { color: var(--accent-600); }
 }
 
 .article-content :where(p, li, blockquote, h1, h2, h3, h4, h5, h6, td, th) {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .prose img,
@@ -95,6 +95,36 @@ article table {
   overflow-x: auto;
 }
 
+.prose table th,
+.prose table td,
+.article-content table th,
+.article-content table td,
+article table th,
+article table td {
+  vertical-align: top;
+}
+
+.article-content .data-table {
+  overflow-x: visible;
+}
+
+.article-content .data-table th,
+.article-content .data-table td {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.article-content .data-table .data-table__label {
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.article-content .data-table .data-table__value {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 .prose code,
 .article-content code,
 article code {
@@ -113,6 +143,14 @@ article pre code {
   color: inherit !important;
   border: 0 !important;
   padding: 0 !important;
+}
+
+.prose table code,
+.article-content table code,
+article table code {
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
 }
 
 .prose a,
@@ -190,6 +228,7 @@ article a {
   margin-top: 1.1rem;
   margin-bottom: .5rem;
   line-height: 1.2;
+  font-weight: 600;
 }
 
 .prose.prose-tight :where(h3){
