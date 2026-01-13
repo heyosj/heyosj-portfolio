@@ -1,0 +1,146 @@
+---
+title: "Songtrust Impersonation via SMS, Fake Work Portal, Telegram Pivot"
+description: "Unsolicited SMS promised easy remote pay, linked to a Songtrust-branded login page that simply funnels victims to Telegram."
+date: "01-13-2026"
+slug: "employment-scam-songtrust"
+tags: ["osint", "social-engineering", "scam", "sms", "impersonation"]
+---
+
+> **IOCs**
+>
+> Domain `songtrustppc[.]com`  
+> URL `work[.]songtrustppc[.]com/login`  
+> Telegram `t[.]me/SONGTRUST_01`  
+> SMS numbers likely rotating VoIP `+1 (415) 529-0196`, `+1 (213) 548-9457`
+
+---
+
+## TL;DR
+
+I got unsolicited SMS messages claiming to be from CoreBridge Recruitment, offering remote roles with unusually high pay for minimal work. After engaging, I was sent to a Songtrust branded login page that did not authenticate users. Clicking Sign in just redirected me to Telegram, where the scam moves to manual chat.
+
+---
+
+## 1) SMS lure
+
+The pitch was classic. Low effort, high pay, and generic eligibility checks.
+
+<figure className="my-8 mx-auto max-w-md sm:max-w-lg lg:max-w-xl rounded-2xl border border-white/10 bg-black/20 shadow-[0_24px_80px_rgba(0,0,0,0.55)] overflow-hidden">
+  <img
+    src="/images/employment-scam/text1.jpeg"
+    alt="Initial SMS pitch offering high pay for minimal work"
+    className="h-auto w-full max-h-[640px] object-contain"
+    width="1265"
+    height="2048"
+  />
+  <figcaption className="p-3 text-center text-sm text-white/70">Initial pitch. High pay, low effort, vague role details.</figcaption>
+</figure>
+<figure className="my-8 mx-auto max-w-md sm:max-w-lg lg:max-w-xl rounded-2xl border border-white/10 bg-black/20 shadow-[0_24px_80px_rgba(0,0,0,0.55)] overflow-hidden">
+  <img
+    src="/images/employment-scam/text2.jpeg"
+    alt="Short reply confirming interest"
+    className="h-auto w-full max-h-[640px] object-contain"
+    width="1320"
+    height="400"
+  />
+  <figcaption className="p-3 text-center text-sm text-white/70">Short reply. A minimal response keeps the bait moving.</figcaption>
+</figure>
+<figure className="my-8 mx-auto max-w-md sm:max-w-lg lg:max-w-xl rounded-2xl border border-white/10 bg-black/20 shadow-[0_24px_80px_rgba(0,0,0,0.55)] overflow-hidden">
+  <img
+    src="/images/employment-scam/text3.jpeg"
+    alt="Follow-up SMS with next steps"
+    className="h-auto w-full max-h-[640px] object-contain"
+    width="1288"
+    height="2048"
+  />
+  <figcaption className="p-3 text-center text-sm text-white/70">Follow up. Push to engage and move off platform.</figcaption>
+</figure>
+<figure className="my-8 mx-auto max-w-md sm:max-w-lg lg:max-w-xl rounded-2xl border border-white/10 bg-black/20 shadow-[0_24px_80px_rgba(0,0,0,0.55)] overflow-hidden">
+  <img
+    src="/images/employment-scam/text4.jpeg"
+    alt="SMS with instructions and scheduling pressure"
+    className="h-auto w-full max-h-[640px] object-contain"
+    width="1294"
+    height="2048"
+  />
+  <figcaption className="p-3 text-center text-sm text-white/70">Pressure. Urgency cues and vague scheduling language.</figcaption>
+</figure>
+<figure className="my-8 mx-auto max-w-md sm:max-w-lg lg:max-w-xl rounded-2xl border border-white/10 bg-black/20 shadow-[0_24px_80px_rgba(0,0,0,0.55)] overflow-hidden">
+  <img
+    src="/images/employment-scam/text5.jpeg"
+    alt="Final SMS with link to the fake portal"
+    className="h-auto w-full max-h-[640px] object-contain"
+    width="1265"
+    height="2048"
+  />
+  <figcaption className="p-3 text-center text-sm text-white/70">Portal link. Drops the link that starts the pivot.</figcaption>
+</figure>
+
+---
+
+## 2) Fake Songtrust “portal”
+
+The link pointed to:
+
+* `work[.]songtrustppc[.]com/login`
+
+The page uses Songtrust branding and marketing language instead of an actual authentication form.
+
+<figure className="my-8 mx-auto max-w-md sm:max-w-lg lg:max-w-xl rounded-2xl border border-white/10 bg-black/20 shadow-[0_24px_80px_rgba(0,0,0,0.55)] overflow-hidden">
+  <img
+    src="/images/employment-scam/homepage.png"
+    alt="Songtrust-branded landing page posing as a login portal"
+    className="h-auto w-full max-h-[640px] object-contain"
+    width="2426"
+    height="1546"
+  />
+  <figcaption className="p-3 text-center text-sm text-white/70">Songtrust landing page — branding and marketing language replace a real login.</figcaption>
+</figure>
+
+### Static inspection
+
+* No visible login form
+* No backend auth endpoints referenced
+* No credential submission on page load
+
+The `/login` path is misleading and functions as a landing page, not an auth page.
+
+---
+
+## 3) Redirect to Telegram
+
+Clicking Sign in does not authenticate the user. It redirects to Telegram.
+
+`t[.]me/SONGTRUST_01`
+
+<figure className="my-8 mx-auto max-w-md sm:max-w-lg lg:max-w-xl rounded-2xl border border-white/10 bg-black/20 shadow-[0_24px_80px_rgba(0,0,0,0.55)] overflow-hidden">
+  <img
+    src="/images/employment-scam/redirect.png"
+    alt="Redirect from the fake portal to a Telegram handle"
+    className="h-auto w-full max-h-[640px] object-contain"
+    width="2426"
+    height="1546"
+  />
+  <figcaption className="p-3 text-center text-sm text-white/70">Telegram redirect — the flow moves off-platform into chat.</figcaption>
+</figure>
+
+This confirms the site’s role as a traffic funnel. All meaningful interaction moves off platform to Telegram, where the scam is handled manually with screenshots, instructions, and next steps.
+
+---
+
+## What this campaign relies on
+
+* Brand impersonation using Songtrust
+* Social engineering via SMS
+* Off platform migration to Telegram
+* Human in the loop fraud
+
+No malware, payloads, or credential harvesting endpoints were observed.
+
+---
+
+## Takeaway
+
+This was clearly a scam from the first message. The pitch was vague, the pay unrealistic, and the outreach unsolicited. I continued the conversation intentionally — not because it was convincing, but to observe how the flow worked. When I pushed back (asking about a sign-on bonus), the tone immediately shifted to defensiveness and gaslighting, a common tactic used to reassert legitimacy and keep victims engaged.
+
+The site itself did nothing malicious. Its only purpose was to redirect the conversation to Telegram, where the scam is executed manually.
