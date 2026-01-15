@@ -81,6 +81,11 @@ export default async function Home() {
         blurb="Browser-based phishing email analysis: import .eml or raw source, parse headers/body, extract URLs, and export a clean summary."
         href="https://heyosj.github.io/prview/"
       />
+      <FeaturedProject
+        title="SIGNL"
+        blurb="Security alerts, but intelligent — tailored to your stack, prioritized, and sent where your team already collaborates."
+        href="https://heyosj.github.io/signl/"
+      />
 
       {/* section cards */}
       <div className="grid gap-4 md:grid-cols-3">
@@ -305,7 +310,7 @@ function FeaturedProject({
           </a>
         </div>
       </div>
-      <h3 className="font-serif text-lg md:text-xl mt-2 leading-snug">PRVIEW</h3>
+      <h3 className="font-serif text-lg md:text-xl mt-2 leading-snug">{title}</h3>
       <p className="muted mt-2 max-w-2xl text-sm">{blurb}</p>
     </div>
   );

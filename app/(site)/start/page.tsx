@@ -151,6 +151,11 @@ export default async function StartPage({
           blurb="Browser-based phishing email analysis: import .eml or raw source, parse headers/body, extract URLs, and export a clean summary."
           href="https://heyosj.github.io/prview/"
         />
+        <FeaturedProjectRow
+          title="SIGNL"
+          blurb="Security alerts, but intelligent — tailored to your stack, prioritized, and sent where your team already collaborates."
+          href="https://heyosj.github.io/signl/"
+        />
 
         {/* footer */}
         <div className="muted mt-6 space-y-2">
