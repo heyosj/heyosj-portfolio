@@ -30,7 +30,7 @@ export default function Home() {
         {" "}
         <Link className="underline" href="https://www.linkedin.com/in/heyosj" target="_blank">linkedin</Link>
         {"  "}
-        <Link className="underline" href="https://x.com/heyosj" target="_blank">x</Link>
+        <Link className="underline" href="https://x.com/inf0stache" target="_blank">x</Link>
         {"  "}
         <Link className="underline" href="https://github.com/heyosj" target="_blank">github</Link>
       </p>

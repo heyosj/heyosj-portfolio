@@ -23,7 +23,7 @@ export default function BioCard() {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 text-sm">
-            <Link href="https://x.com/heyosj" className="underline" target="_blank" rel="noreferrer">
+            <Link href="https://x.com/inf0stache" className="underline" target="_blank" rel="noreferrer">
               Follow on X
             </Link>
             <Link href="mailto:me@heyosj.com" className="underline">

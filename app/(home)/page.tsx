@@ -115,7 +115,7 @@ export default async function Home() {
         •{" "}
         <a
           className="underline"
-          href="https://x.com/heyosj"
+          href="https://x.com/inf0stache"
           target="_blank"
           rel="noopener noreferrer"
         >

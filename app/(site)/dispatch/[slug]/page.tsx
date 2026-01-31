@@ -373,7 +373,7 @@ export default async function PostPage({ params }: { params: { slug: string } })
         </Link>
         <a
           className="underline"
-          href="https://x.com/heyosj"
+          href="https://x.com/inf0stache"
           target="_blank"
           rel="noreferrer"
         >

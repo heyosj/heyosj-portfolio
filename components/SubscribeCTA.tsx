@@ -30,7 +30,7 @@ export default function SubscribeCTA() {
         </Link>
         <span className="mx-2 text-zinc-500 dark:text-zinc-500">·</span>
         <Link
-          href="https://x.com/heyosj"
+          href="https://x.com/inf0stache"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="X (Twitter)"
